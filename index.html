@@ -1,564 +1,571 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CIPP/E 頻出単語フラッシュカード (厳選130語)</title>
-    
-    <!-- PWA用の設定ファイルとアイコンの読み込み (ここから追加) -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3b82f6">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <!-- (ここまで追加) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CIPP/E 頻出単語フラッシュカード (厳選140語)</title>
+    
+    <!-- PWA用の設定ファイルとアイコンの読み込み -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            touch-action: pan-y;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .perspective-1000 { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-        
-        .card-inner {
-            transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
-        .is-flipped {
-            transform: rotateY(180deg);
-        }
-        .card-back {
-            transform: rotateY(180deg);
-        }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            touch-action: pan-y;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        
+        .card-inner {
+            transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        .is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
 
-        .swipe-transition {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-        }
-        
-        .dot { transition: all 0.3s ease; }
-        .dot.active {
-            background-color: #3b82f6; 
-            transform: scale(1.3);
-        }
+        .swipe-transition {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        
+        .dot { transition: all 0.3s ease; }
+        .dot.active {
+            background-color: #3b82f6; 
+            transform: scale(1.3);
+        }
 
-        @keyframes pulse-swipe {
-            0%, 100% { opacity: 0.5; transform: translateX(0); }
-            50% { opacity: 1; transform: translateX(-10px); }
-        }
-        .animate-swipe-hint {
-            animation: pulse-swipe 2s infinite;
-        }
-        
-        /* スピーカーボタンのホバーアニメーション */
-        .speaker-btn:hover {
-            color: #3b82f6;
-            transform: scale(1.1);
-        }
-        .speaker-btn:active {
-            transform: scale(0.95);
-        }
-    </style>
+        @keyframes pulse-swipe {
+            0%, 100% { opacity: 0.5; transform: translateX(0); }
+            50% { opacity: 1; transform: translateX(-10px); }
+        }
+        .animate-swipe-hint {
+            animation: pulse-swipe 2s infinite;
+        }
+        
+        /* スピーカーボタンのホバーアニメーション */
+        .speaker-btn:hover {
+            color: #3b82f6;
+            transform: scale(1.1);
+        }
+        .speaker-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans h-screen w-screen overflow-hidden flex flex-col relative select-none">
 
-    <!-- トップヘッダー -->
-    <header class="bg-white px-4 py-3 shadow-sm z-10 flex justify-between items-center shrink-0">
-        <h1 class="text-lg font-bold text-gray-800 tracking-tight">CIPP/E Flashcards</h1>
-        <div class="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full shadow-inner" id="level-badge">Level 0</div>
-    </header>
+    <!-- トップヘッダー -->
+    <header class="bg-white px-4 py-3 shadow-sm z-10 flex justify-between items-center shrink-0">
+        <h1 class="text-lg font-bold text-gray-800 tracking-tight">CIPP/E Flashcards</h1>
+        <div class="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full shadow-inner" id="level-badge">Level 0</div>
+    </header>
 
-    <!-- プログレスバー -->
-    <div class="w-full bg-gray-200 h-1 shrink-0">
-        <div class="bg-blue-500 h-1 transition-all duration-300" id="progress-bar" style="width: 0%"></div>
-    </div>
+    <!-- プログレスバー -->
+    <div class="w-full bg-gray-200 h-1 shrink-0">
+        <div class="bg-blue-500 h-1 transition-all duration-300" id="progress-bar" style="width: 0%"></div>
+    </div>
 
-    <!-- テーマと現在地 -->
-    <div class="px-4 pt-4 pb-2 flex justify-between items-end shrink-0">
-        <h2 class="text-sm font-bold text-gray-500 tracking-wider" id="theme-text">Category</h2>
-        <span class="text-sm font-bold text-gray-400" id="progress-text">1/130</span>
-    </div>
+    <!-- テーマと現在地 -->
+    <div class="px-4 pt-4 pb-2 flex justify-between items-end shrink-0">
+        <h2 class="text-sm font-bold text-gray-500 tracking-wider" id="theme-text">Category</h2>
+        <span class="text-sm font-bold text-gray-400" id="progress-text">1/140</span>
+    </div>
 
-    <!-- メインのカードエリア -->
-    <main class="flex-grow flex flex-col justify-center items-center px-4 pb-2 w-full relative" id="swipe-container">
-        
-        <!-- フラッシュカード本体 -->
-        <div class="w-full max-w-sm aspect-[4/3] sm:aspect-video perspective-1000 relative z-20" id="flashcard">
-            <div class="w-full h-full relative transform-style-3d card-inner shadow-2xl rounded-2xl cursor-pointer" id="card-inner">
-                
-                <!-- 表面 (英語) -->
-                <div class="absolute inset-0 backface-hidden bg-white border-2 border-gray-100 rounded-2xl flex flex-col justify-center items-center p-6 text-center z-10">
-                    
-                    <!-- 単語の音声再生ボタン -->
-                    <button id="speak-btn" class="absolute top-4 right-4 p-2 text-gray-400 transition-all speaker-btn z-30 focus:outline-none" aria-label="単語を読み上げる">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                        </svg>
-                    </button>
+    <!-- メインのカードエリア -->
+    <main class="flex-grow flex flex-col justify-center items-center px-4 pb-2 w-full relative" id="swipe-container">
+        
+        <!-- フラッシュカード本体 -->
+        <div class="w-full max-w-sm aspect-[4/3] sm:aspect-video perspective-1000 relative z-20" id="flashcard">
+            <div class="w-full h-full relative transform-style-3d card-inner shadow-2xl rounded-2xl cursor-pointer" id="card-inner">
+                
+                <!-- 表面 (英語) -->
+                <div class="absolute inset-0 backface-hidden bg-white border-2 border-gray-100 rounded-2xl flex flex-col justify-center items-center p-6 text-center z-10">
+                    
+                    <!-- 単語の音声再生ボタン -->
+                    <button id="speak-btn" class="absolute top-4 right-4 p-2 text-gray-400 transition-all speaker-btn z-30 focus:outline-none" aria-label="単語を読み上げる">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                    </button>
 
-                    <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-800 leading-snug break-words w-full" id="english-chunk">
-                        Word
-                    </h3>
-                    <div class="absolute bottom-4 text-xs font-medium text-gray-400 flex items-center gap-1 bg-gray-50 px-3 py-1 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
-                        タップして意味・イメージを確認
-                    </div>
-                </div>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-gray-800 leading-snug break-words w-full" id="english-chunk">
+                        Word
+                    </h3>
+                    <div class="absolute bottom-4 text-xs font-medium text-gray-400 flex items-center gap-1 bg-gray-50 px-3 py-1 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
+                        タップして意味・イメージを確認
+                    </div>
+                </div>
 
-                <!-- 裏面 (日本語・イメージ) -->
-                <div class="absolute inset-0 backface-hidden card-back bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex flex-col justify-center items-center p-6 text-center shadow-inner">
-                    <h3 class="text-xl sm:text-2xl font-bold mb-4 w-full leading-tight" id="japanese-chunk">
-                        日本語訳
-                    </h3>
-                    <div class="mt-2 bg-white/10 backdrop-blur-md rounded-xl p-4 w-full border border-white/20 shadow-lg">
-                        <span class="text-blue-200 text-[10px] uppercase tracking-widest font-bold block mb-1">💡 実務・脳内イメージ</span>
-                        <span class="text-sm sm:text-base font-semibold text-white leading-relaxed" id="mental-image">イメージ解説</span>
-                    </div>
-                     <div class="absolute bottom-4 text-xs text-blue-200 flex items-center gap-1 animate-swipe-hint bg-black/20 px-3 py-1 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                        左へスワイプして次へ
-                    </div>
-                </div>
+                <!-- 裏面 (日本語・イメージ) -->
+                <div class="absolute inset-0 backface-hidden card-back bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex flex-col justify-center items-center p-6 text-center shadow-inner">
+                    <h3 class="text-xl sm:text-2xl font-bold mb-4 w-full leading-tight" id="japanese-chunk">
+                        日本語訳
+                    </h3>
+                    <div class="mt-2 bg-white/10 backdrop-blur-md rounded-xl p-4 w-full border border-white/20 shadow-lg">
+                        <span class="text-blue-200 text-[10px] uppercase tracking-widest font-bold block mb-1">💡 実務・脳内イメージ</span>
+                        <span class="text-sm sm:text-base font-semibold text-white leading-relaxed" id="mental-image">イメージ解説</span>
+                    </div>
+                     <div class="absolute bottom-4 text-xs text-blue-200 flex items-center gap-1 animate-swipe-hint bg-black/20 px-3 py-1 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        左へスワイプして次へ
+                    </div>
+                </div>
 
-            </div>
-        </div>
+            </div>
+        </div>
 
-        <!-- コンテキスト表示 (文全体/定義) -->
-        <div class="mt-6 w-full max-w-sm shrink-0">
-            <div class="text-xs text-gray-600 bg-white p-4 rounded-xl border border-gray-200 shadow-sm leading-relaxed" id="full-sentence-container">
-                <!-- JSでハイライト付きの文章を挿入 -->
-            </div>
-        </div>
-        
-    </main>
+        <!-- コンテキスト表示 (文全体/定義) -->
+        <div class="mt-6 w-full max-w-sm shrink-0">
+            <div class="text-xs text-gray-600 bg-white p-4 rounded-xl border border-gray-200 shadow-sm leading-relaxed" id="full-sentence-container">
+                <!-- JSでハイライト付きの文章を挿入 -->
+            </div>
+        </div>
+        
+    </main>
 
-    <!-- ドットインジケーター -->
-    <div class="pb-4 pt-2 flex justify-center gap-1 shrink-0 px-4 flex-wrap overflow-y-auto max-h-12" id="dot-container">
-        <!-- JSで生成 -->
-    </div>
+    <!-- ドットインジケーター -->
+    <div class="pb-4 pt-2 flex justify-center gap-1 shrink-0 px-4 flex-wrap overflow-y-auto max-h-12" id="dot-container">
+        <!-- JSで生成 -->
+    </div>
 
-    <!-- 完了時のオーバーレイ -->
-    <div id="completion-overlay" class="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500">
-        <div class="text-7xl mb-6">🏆</div>
-        <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Excellent!</h2>
-        <p class="text-gray-600 mb-8 text-center px-6 font-medium">厳選130語の学習を完了しました！<br>実務のイメージと結びつきましたか？</p>
-        <button onclick="resetApp()" class="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl active:scale-95 transition-transform hover:bg-blue-700">
-            もう一度高速で回す
-        </button>
-    </div>
+    <!-- 完了時のオーバーレイ -->
+    <div id="completion-overlay" class="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-500">
+        <div class="text-7xl mb-6">🏆</div>
+        <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Excellent!</h2>
+        <p class="text-gray-600 mb-8 text-center px-6 font-medium">厳選140語の学習を完了しました！<br>実務のイメージと結びつきましたか？</p>
+        <button onclick="resetApp()" class="bg-blue-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl active:scale-95 transition-transform hover:bg-blue-700">
+            もう一度高速で回す
+        </button>
+    </div>
 
-    <script>
-        // CIPP/E 厳選130語データ (Level 0追加)
-        const flashcardData = [
-            // Level 0: Legal English Basics (法律英語の基礎・接続表現) 1-30
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "shall", jp: "〜しなければならない (絶対的義務)", image: "法律文書の王様。「Must」より堅く、法的拘束力がある絶対的な義務を表す。", full: "The controller shall implement appropriate measures." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "may", jp: "〜することができる (許可・裁量)", image: "「してもいいし、しなくてもいい」という裁量権を与える表現。義務ではない。", full: "The supervisory authority may conduct data protection audits." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "where", jp: "〜する場合において (条件・場面)", image: "GDPRで超頻出。「If」の代わりに使われ、「〇〇という場面・状況では」と条件を絞り込む。", full: "Where processing is based on consent, the controller shall be able to demonstrate..." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "where applicable", jp: "該当する場合には", image: "「もしそれに当てはまるなら」「ある場合は」という補足。全ての人に当てはまらない時に使う。", full: "Each controller and, where applicable, the controller's representative, shall maintain a record." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "subject to", jp: "〜を条件として / 〜に従って", image: "「〜というルールがある前提で」や「〜に服従して」という意味。制限をかける時によく出る。", full: "Subject to Article 8, the processing of personal data shall be lawful." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "without prejudice to", jp: "〜を妨げることなく / 〜に影響を及ぼさず", image: "「このルールを適用しても、あっちのルールの効力は消えないよ（両立するよ）」という宣言。", full: "Without prejudice to any other administrative or judicial remedy, every data subject shall have the right..." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "in particular", jp: "とりわけ / 特に", image: "広い概念を言った後に、具体例を強調して挙げる時の決まり文句。", full: "Where a type of processing, in particular using new technologies, is likely to result in a high risk..." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "to the extent that", jp: "〜する限りにおいて / 〜の範囲内で", image: "「ここまではOKだけど、それ以上はダメ」と線を引く表現。", full: "To the extent that processing is necessary for compliance with a legal obligation." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "in accordance with", jp: "〜に従って / 〜に準拠して", image: "「決められたルールや法律に合わせて」何かを行うときの表現。", full: "Personal data shall be processed in accordance with this Regulation." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "pursuant to", jp: "〜に基づいて / 〜を根拠として", image: "「第〇条を根拠として発動する」と言う時のフォーマルな表現。", full: "An adequacy decision adopted pursuant to Article 45." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "likely to", jp: "〜する可能性が高い / 〜するおそれがある", image: "リスク評価(DPIAなど)で必須。「100%ではないが、そうなる確率が高い」状態。", full: "Processing is likely to result in a high risk to the rights and freedoms of natural persons." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "prior to", jp: "〜に先立って / 〜より前に", image: "Beforeの堅い表現。「〇〇を始める前に、まずこれをやれ」という手順の指示で使う。", full: "The controller shall, prior to the processing, carry out an assessment of the impact." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "without undue delay", jp: "不当な遅滞なく", image: "GDPR特有の期限表現。「明確な日数は言わないが、理由なくモタモタするな（基本すぐやれ）」という意味。", full: "The controller shall notify the SA without undue delay." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "on behalf of", jp: "〜の代わりに / 〜の指示を受けて", image: "Processor（処理者）が登場する時のキーワード。Controllerの代わりに実務を代行する状態。", full: "A processor is a person or body which processes personal data on behalf of the controller." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "taking into account", jp: "〜を考慮して / 〜を踏まえて", image: "対策や評価をする時に、「コストや技術の最新状況など、周囲の状況を加味して決めなさい」という表現。", full: "Taking into account the state of the art, the costs of implementation and the nature of processing..." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "irrespective of", jp: "〜に関わらず / 〜を問わず", image: "「そんな条件は無視して、全てに適用するよ」という表現。", full: "An enterprise is any entity engaged in an economic activity, irrespective of its legal form." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "unless", jp: "〜でない限り / 〜の場合を除き", image: "原則を述べた後、「ただしこういう場合は別だけどね」と例外を引っ張り出す表現。", full: "Personal data shall not be transferred unless the conditions are met." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "for the purpose of", jp: "〜の目的で", image: "データ処理の「目的（Why）」を示す時の基本フレーズ。", full: "Personal data collected for the purpose of direct marketing." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "relating to", jp: "〜に関連する", image: "Aboutの堅い表現。「個人データ＝個人に『関連する』情報」という定義で必須。", full: "Personal data means any information relating to an identified natural person." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "concerning", jp: "〜に関する", image: "Relating toとほぼ同じ。自分「に関する」データ、と言う時によく使われる。", full: "The right to obtain the erasure of personal data concerning him or her." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "have the right to", jp: "〜する権利を有する", image: "データ主体の権利（Right）を宣言する時の決まり文句。これもshallとセットになることが多い。", full: "The data subject shall have the right to withdraw his or her consent at any time." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "be subject to", jp: "〜の対象となる / 〜の適用を受ける", image: "「この法律のルールを守らなければならない立場にある」という意味。", full: "The controller is subject to this Regulation." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "provided that", jp: "ただし〜という条件で", image: "IfやOnly ifに近く、「〜という前提条件をクリアしているなら」という意味。", full: "Processing is lawful provided that the data subject has given consent." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "as well as", jp: "〜と同様に / 〜だけでなく", image: "Andと同じように使われるが、「AだけでなくBも」と追加を強調する。", full: "The controller as well as the processor shall designate a DPO." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "by means of", jp: "〜を用いて / 〜の手段によって", image: "「どうやって（How）」を説明するフレーズ。自動化された手段など。", full: "Processing carried out by means of automated processing." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "in relation to", jp: "〜に関連して / 〜に関して", image: "ある対象（データ主体など）に向けて、という意味合い。", full: "Lawfully, fairly and in a transparent manner in relation to the data subject." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "demonstrate", jp: "〜を証明する / 示す", image: "アカウンタビリティ（説明責任）のキーワード。「ルールを守っている証拠を出せる状態」のこと。", full: "The controller shall be able to demonstrate that the data subject has consented." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "ensure", jp: "〜を確実にする / 保証する", image: "「安全な状態をキープしろ！」という管理者の義務を示す表現。", full: "Ensure a level of security appropriate to the risk." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "in the context of", jp: "〜の枠組みにおいて / 〜の状況下で", image: "EU拠点の活動の「一環として」処理が行われているか、という適用範囲で出る表現。", full: "Processing in the context of the activities of an establishment of a controller in the Union." },
-            { level: "Level 0", theme: "0. Legal English Basics", eng: "notwithstanding", jp: "〜にもかかわらず", image: "「第〇条でこう言ってるけど、それに関係なくこっちのルールを優先するよ」という例外規定。", full: "Notwithstanding Article 5, the processing shall be lawful..." },
+    <script>
+        // CIPP/E 厳選140語データ (Level 0に10語追加)
+        const flashcardData = [
+            // Level 0: Legal English Basics (法律英語の基礎・接続表現) 1-40
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "shall", jp: "〜しなければならない (絶対的義務)", image: "法律文書の王様。「Must」より堅く、法的拘束力がある絶対的な義務を表す。", full: "The controller shall implement appropriate measures." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "may", jp: "〜することができる (許可・裁量)", image: "「してもいいし、しなくてもいい」という裁量権を与える表現。義務ではない。", full: "The supervisory authority may conduct data protection audits." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "where", jp: "〜する場合において (条件・場面)", image: "GDPRで超頻出。「If」の代わりに使われ、「〇〇という場面・状況では」と条件を絞り込む。", full: "Where processing is based on consent, the controller shall be able to demonstrate..." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "where applicable", jp: "該当する場合には", image: "「もしそれに当てはまるなら」「ある場合は」という補足。全ての人に当てはまらない時に使う。", full: "Each controller and, where applicable, the controller's representative, shall maintain a record." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "subject to", jp: "〜を条件として / 〜に従って", image: "「〜というルールがある前提で」や「〜に服従して」という意味。制限をかける時によく出る。", full: "Subject to Article 8, the processing of personal data shall be lawful." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "without prejudice to", jp: "〜を妨げることなく / 〜に影響を及ぼさず", image: "「このルールを適用しても、あっちのルールの効力は消えないよ（両立するよ）」という宣言。", full: "Without prejudice to any other administrative or judicial remedy, every data subject shall have the right..." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "in particular", jp: "とりわけ / 特に", image: "広い概念を言った後に、具体例を強調して挙げる時の決まり文句。", full: "Where a type of processing, in particular using new technologies, is likely to result in a high risk..." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "to the extent that", jp: "〜する限りにおいて / 〜の範囲内で", image: "「ここまではOKだけど、それ以上はダメ」と線を引く表現。", full: "To the extent that processing is necessary for compliance with a legal obligation." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "in accordance with", jp: "〜に従って / 〜に準拠して", image: "「決められたルールや法律に合わせて」何かを行うときの表現。", full: "Personal data shall be processed in accordance with this Regulation." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "pursuant to", jp: "〜に基づいて / 〜を根拠として", image: "「第〇条を根拠として発動する」と言う時のフォーマルな表現。", full: "An adequacy decision adopted pursuant to Article 45." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "likely to", jp: "〜する可能性が高い / 〜するおそれがある", image: "リスク評価(DPIAなど)で必須。「100%ではないが、そうなる確率が高い」状態。", full: "Processing is likely to result in a high risk to the rights and freedoms of natural persons." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "prior to", jp: "〜に先立って / 〜より前に", image: "Beforeの堅い表現。「〇〇を始める前に、まずこれをやれ」という手順の指示で使う。", full: "The controller shall, prior to the processing, carry out an assessment of the impact." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "without undue delay", jp: "不当な遅滞なく", image: "GDPR特有の期限表現。「明確な日数は言わないが、理由なくモタモタするな（基本すぐやれ）」という意味。", full: "The controller shall notify the SA without undue delay." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "on behalf of", jp: "〜の代わりに / 〜の指示を受けて", image: "Processor（処理者）が登場する時のキーワード。Controllerの代わりに実務を代行する状態。", full: "A processor is a person or body which processes personal data on behalf of the controller." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "taking into account", jp: "〜を考慮して / 〜を踏まえて", image: "対策や評価をする時に、「コストや技術の最新状況など、周囲の状況を加味して決めなさい」という表現。", full: "Taking into account the state of the art, the costs of implementation and the nature of processing..." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "irrespective of", jp: "〜に関わらず / 〜を問わず", image: "「そんな条件は無視して、全てに適用するよ」という表現。", full: "An enterprise is any entity engaged in an economic activity, irrespective of its legal form." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "unless", jp: "〜でない限り / 〜の場合を除き", image: "原則を述べた後、「ただしこういう場合は別だけどね」と例外を引っ張り出す表現。", full: "Personal data shall not be transferred unless the conditions are met." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "for the purpose of", jp: "〜の目的で", image: "データ処理の「目的（Why）」を示す時の基本フレーズ。", full: "Personal data collected for the purpose of direct marketing." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "relating to", jp: "〜に関連する", image: "Aboutの堅い表現。「個人データ＝個人に『関連する』情報」という定義で必須。", full: "Personal data means any information relating to an identified natural person." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "concerning", jp: "〜に関する", image: "Relating toとほぼ同じ。自分「に関する」データ、と言う時によく使われる。", full: "The right to obtain the erasure of personal data concerning him or her." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "have the right to", jp: "〜する権利を有する", image: "データ主体の権利（Right）を宣言する時の決まり文句。これもshallとセットになることが多い。", full: "The data subject shall have the right to withdraw his or her consent at any time." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "be subject to", jp: "〜の対象となる / 〜の適用を受ける", image: "「この法律のルールを守らなければならない立場にある」という意味。", full: "The controller is subject to this Regulation." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "provided that", jp: "ただし〜という条件で", image: "IfやOnly ifに近く、「〜という前提条件をクリアしているなら」という意味。", full: "Processing is lawful provided that the data subject has given consent." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "as well as", jp: "〜と同様に / 〜だけでなく", image: "Andと同じように使われるが、「AだけでなくBも」と追加を強調する。", full: "The controller as well as the processor shall designate a DPO." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "by means of", jp: "〜を用いて / 〜の手段によって", image: "「どうやって（How）」を説明するフレーズ。自動化された手段など。", full: "Processing carried out by means of automated processing." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "in relation to", jp: "〜に関連して / 〜に関して", image: "ある対象（データ主体など）に向けて、という意味合い。", full: "Lawfully, fairly and in a transparent manner in relation to the data subject." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "demonstrate", jp: "〜を証明する / 示す", image: "アカウンタビリティ（説明責任）のキーワード。「ルールを守っている証拠を出せる状態」のこと。", full: "The controller shall be able to demonstrate that the data subject has consented." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "ensure", jp: "〜を確実にする / 保証する", image: "「安全な状態をキープしろ！」という管理者の義務を示す表現。", full: "Ensure a level of security appropriate to the risk." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "in the context of", jp: "〜の枠組みにおいて / 〜の状況下で", image: "EU拠点の活動の「一環として」処理が行われているか、という適用範囲で出る表現。", full: "Processing in the context of the activities of an establishment of a controller in the Union." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "notwithstanding", jp: "〜にもかかわらず", image: "「第〇条でこう言ってるけど、それに関係なくこっちのルールを優先するよ」という例外規定。", full: "Notwithstanding Article 5, the processing shall be lawful..." },
+            // ここから新規追加 10語
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "in a transparent manner", jp: "透明性のある方法で", image: "隠し事をせず、ユーザーに分かりやすく開示しているクリーンな状態。", full: "Personal data shall be processed lawfully, fairly and in a transparent manner." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "on the basis of", jp: "〜に基づいて / 〜を根拠として", image: "処理のチケット（適法根拠や同意など）を「土台」にして行動しているイメージ。", full: "Processing is lawful only if it is on the basis of the data subject's consent or some other legitimate basis." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "in the event of", jp: "〜の場合には / 万が一〜が起きたら", image: "「もしもデータ漏えい事件が起こってしまったら」という特定のイベント発生時を指す。", full: "In the event of a personal data breach, the controller shall notify the supervisory authority." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "be responsible for", jp: "〜に対する責任を負う", image: "アカウンタビリティの核心。「自分がこの処理のケツを持つぞ（責任者だ）」という状態。", full: "The controller shall be responsible for compliance with paragraph 1." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "in order to", jp: "〜するために / 〜を目的として", image: "「To」よりも堅い表現で、データ処理の目的（Why）をハッキリと明示するフレーズ。", full: "Processing is necessary in order to protect the vital interests of the data subject." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "comply with", jp: "〜を遵守する / 従う", image: "法律、規則、法的義務などにしっかりと「従う・守る」こと。", full: "Processing is necessary for compliance with a legal obligation to which the controller is subject." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "limited to", jp: "〜に限定される / 制限される", image: "「これ以上はダメ！」と枠を決めること（データ最小化の原則などで頻出）。", full: "Adequate, relevant and limited to what is necessary in relation to the purposes." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "specify", jp: "〜を特定する / 明記する", image: "曖昧なままにせず「これとこれ！」とはっきりと文章で指定すること。", full: "Personal data shall be collected for specified, explicit and legitimate purposes." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "implement", jp: "（対策などを）実施する / 導入する", image: "セキュリティ対策やシステムを「実際に実行に移す、組み込む」こと。", full: "The controller shall implement appropriate technical and organisational measures." },
+            { level: "Level 0", theme: "0. Legal English Basics", eng: "infringement", jp: "侵害 / 違反", image: "GDPRのルールを破ること。高額な罰金（制裁金）の対象になる悪いアクション。", full: "Any person who has suffered damage as a result of an infringement of this Regulation shall have the right to receive compensation." },
 
-            // ---------------- 以下、既存の厳選100語 ----------------
-            // Level 1: Core Definitions (基本定義)
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Personal Data", jp: "個人データ", image: "「特定の個人」を識別できるあらゆる情報（名前、IPアドレス、Cookieなど）", full: "Any information relating to an identified or identifiable natural person." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Data Subject", jp: "データ主体", image: "データの持ち主である「生きている自然人」。法人（会社）は含まれない。", full: "An identified or identifiable natural person to whom personal data relates." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Processing", jp: "処理", image: "データに対して行う「あらゆる操作」。収集、保存、閲覧、消去、全てProcessing。", full: "Any operation or set of operations which is performed on personal data or on sets of personal data." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Controller", jp: "管理者", image: "データ処理の「目的（Why）」と「手段（How）」を決定するボス。全責任を負う。", full: "The natural or legal person, public authority, agency or other body which determines the purposes and means of the processing of personal data." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Processor", jp: "処理者", image: "Controllerの指示に従って実務を行う下請け業者（クラウドベンダーなど）。", full: "A natural or legal person, public authority, agency or other body which processes personal data on behalf of the controller." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Special Categories of Data", jp: "特別な種類の個人データ", image: "いわゆる「センシティブデータ」。人種、宗教、健康、遺伝、生体データなど。原則処理禁止。", full: "Personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, biometric data, data concerning health..." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Pseudonymisation", jp: "仮名化", image: "追加情報（キー）がないと個人を特定できない状態。キーは別保管。GDPRの対象のまま。", full: "The processing of personal data in such a manner that the personal data can no longer be attributed to a specific data subject without the use of additional information." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Anonymisation", jp: "匿名化", image: "完全に個人を特定できなくした状態。元に戻せない。GDPRの「対象外」になる。", full: "Information which does not relate to an identified or identifiable natural person, rendering the data subject no longer identifiable." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Filing System", jp: "ファイリングシステム", image: "特定の基準で整理され、検索可能なデータのまとまり。紙のファイルも対象になる。", full: "Any structured set of personal data which are accessible according to specific criteria." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Recipient", jp: "受領者", image: "データを開示される先の自然人・法人。第三者とは限らない。", full: "A natural or legal person, public authority, agency or another body, to which the personal data are disclosed." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Third Party", jp: "第三者", image: "データ主体、管理者、処理者「以外」の者。", full: "A natural or legal person, public authority, agency or body other than the data subject, controller, processor and persons who are authorised to process personal data." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Profiling", jp: "プロファイリング", image: "個人の行動、好み、仕事の能力などを「自動的」に評価・分析すること。", full: "Any form of automated processing of personal data consisting of the use of personal data to evaluate certain personal aspects relating to a natural person." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Enterprise", jp: "企業", image: "経済活動に従事する自然人または法人。法的形態は問わない。", full: "A natural or legal person engaged in an economic activity, irrespective of its legal form." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Group of Undertakings", jp: "企業グループ", image: "支配企業と、それに支配される従属企業の集まり。BCR（拘束的企業準則）の適用単位。", full: "A controlling undertaking and its controlled undertakings." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Supervisory Authority (SA)", jp: "監督機関", image: "各国に設置される独立したデータ保護の警察・裁判官。DPAとも呼ばれる。", full: "An independent public authority which is established by a Member State pursuant to Article 51." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Lead Supervisory Authority", jp: "主導監督機関", image: "国境を越えるデータ処理を行う企業に対し、メインで対応する監督機関（主たる事業所がある国のSA）。", full: "The supervisory authority with the primary responsibility for dealing with a cross-border data processing activity." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Cross-border Processing", jp: "越境処理", image: "EU内の複数国にまたがるデータ処理、または1国だが複数国のデータ主体に影響を与える処理。", full: "Processing of personal data which takes place in the context of the activities of establishments in more than one Member State..." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Main Establishment", jp: "主たる事業所", image: "EU内でのデータ処理の目的と手段の決定が実質的に行われる中央管理場所。", full: "The place of its central administration in the Union, unless the decisions on the purposes and means of the processing are taken in another establishment." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Representative", jp: "代理人", image: "EU域内に拠点がない企業が、GDPR対応のためにEU内に指定する窓口役。", full: "A natural or legal person established in the Union who represents the controller or processor with regard to their respective obligations." },
-            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Information Society Service", jp: "情報社会サービス", image: "オンラインで提供されるサービス。子供の同意年齢（通常16歳、加盟国で13歳まで引下げ可）の規定で登場。", full: "Any service normally provided for remuneration, at a distance, by electronic means and at the individual request of a recipient of services." },
+            // ---------------- 以下、既存の厳選100語 ----------------
+            // Level 1: Core Definitions (基本定義)
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Personal Data", jp: "個人データ", image: "「特定の個人」を識別できるあらゆる情報（名前、IPアドレス、Cookieなど）", full: "Any information relating to an identified or identifiable natural person." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Data Subject", jp: "データ主体", image: "データの持ち主である「生きている自然人」。法人（会社）は含まれない。", full: "An identified or identifiable natural person to whom personal data relates." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Processing", jp: "処理", image: "データに対して行う「あらゆる操作」。収集、保存、閲覧、消去、全てProcessing。", full: "Any operation or set of operations which is performed on personal data or on sets of personal data." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Controller", jp: "管理者", image: "データ処理の「目的（Why）」と「手段（How）」を決定するボス。全責任を負う。", full: "The natural or legal person, public authority, agency or other body which determines the purposes and means of the processing of personal data." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Processor", jp: "処理者", image: "Controllerの指示に従って実務を行う下請け業者（クラウドベンダーなど）。", full: "A natural or legal person, public authority, agency or other body which processes personal data on behalf of the controller." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Special Categories of Data", jp: "特別な種類の個人データ", image: "いわゆる「センシティブデータ」。人種、宗教、健康、遺伝、生体データなど。原則処理禁止。", full: "Personal data revealing racial or ethnic origin, political opinions, religious or philosophical beliefs, biometric data, data concerning health..." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Pseudonymisation", jp: "仮名化", image: "追加情報（キー）がないと個人を特定できない状態。キーは別保管。GDPRの対象のまま。", full: "The processing of personal data in such a manner that the personal data can no longer be attributed to a specific data subject without the use of additional information." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Anonymisation", jp: "匿名化", image: "完全に個人を特定できなくした状態。元に戻せない。GDPRの「対象外」になる。", full: "Information which does not relate to an identified or identifiable natural person, rendering the data subject no longer identifiable." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Filing System", jp: "ファイリングシステム", image: "特定の基準で整理され、検索可能なデータのまとまり。紙のファイルも対象になる。", full: "Any structured set of personal data which are accessible according to specific criteria." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Recipient", jp: "受領者", image: "データを開示される先の自然人・法人。第三者とは限らない。", full: "A natural or legal person, public authority, agency or another body, to which the personal data are disclosed." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Third Party", jp: "第三者", image: "データ主体、管理者、処理者「以外」の者。", full: "A natural or legal person, public authority, agency or body other than the data subject, controller, processor and persons who are authorised to process personal data." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Profiling", jp: "プロファイリング", image: "個人の行動、好み、仕事の能力などを「自動的」に評価・分析すること。", full: "Any form of automated processing of personal data consisting of the use of personal data to evaluate certain personal aspects relating to a natural person." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Enterprise", jp: "企業", image: "経済活動に従事する自然人または法人。法的形態は問わない。", full: "A natural or legal person engaged in an economic activity, irrespective of its legal form." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Group of Undertakings", jp: "企業グループ", image: "支配企業と、それに支配される従属企業の集まり。BCR（拘束的企業準則）の適用単位。", full: "A controlling undertaking and its controlled undertakings." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Supervisory Authority (SA)", jp: "監督機関", image: "各国に設置される独立したデータ保護の警察・裁判官。DPAとも呼ばれる。", full: "An independent public authority which is established by a Member State pursuant to Article 51." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Lead Supervisory Authority", jp: "主導監督機関", image: "国境を越えるデータ処理を行う企業に対し、メインで対応する監督機関（主たる事業所がある国のSA）。", full: "The supervisory authority with the primary responsibility for dealing with a cross-border data processing activity." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Cross-border Processing", jp: "越境処理", image: "EU内の複数国にまたがるデータ処理、または1国だが複数国のデータ主体に影響を与える処理。", full: "Processing of personal data which takes place in the context of the activities of establishments in more than one Member State..." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Main Establishment", jp: "主たる事業所", image: "EU内でのデータ処理の目的と手段の決定が実質的に行われる中央管理場所。", full: "The place of its central administration in the Union, unless the decisions on the purposes and means of the processing are taken in another establishment." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Representative", jp: "代理人", image: "EU域内に拠点がない企業が、GDPR対応のためにEU内に指定する窓口役。", full: "A natural or legal person established in the Union who represents the controller or processor with regard to their respective obligations." },
+            { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Information Society Service", jp: "情報社会サービス", image: "オンラインで提供されるサービス。子供の同意年齢（通常16歳、加盟国で13歳まで引下げ可）の規定で登場。", full: "Any service normally provided for remuneration, at a distance, by electronic means and at the individual request of a recipient of services." },
 
-            // Level 2: Principles & Lawfulness (原則と適法性)
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Lawfulness, Fairness and Transparency", jp: "適法性、公正性、透明性", image: "GDPRの絶対原則。法的な根拠を持ち、ズルをせず、ユーザーに分かりやすく説明すること。", full: "Personal data shall be processed lawfully, fairly and in a transparent manner in relation to the data subject." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Purpose Limitation", jp: "目的の制限", image: "「最初に言った目的以外には使わない」という原則。", full: "Collected for specified, explicit and legitimate purposes and not further processed in a manner that is incompatible with those purposes." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Data Minimisation", jp: "データの最小化", image: "目的に必要なデータ「だけ」を集める。余計な情報は取らない原則。", full: "Adequate, relevant and limited to what is necessary in relation to the purposes for which they are processed." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Accuracy", jp: "正確性", image: "データは常に最新で正確に保つ。間違っていたらすぐ消すか直す原則。", full: "Accurate and, where necessary, kept up to date." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Storage Limitation", jp: "保存期間の制限", image: "目的を達成したら、いつまでも保存せずに捨てる原則。", full: "Kept in a form which permits identification of data subjects for no longer than is necessary for the purposes for which the personal data are processed." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Integrity and Confidentiality", jp: "完全性と機密性", image: "セキュリティの原則。ハッキングや紛失からデータを安全に守ること。", full: "Processed in a manner that ensures appropriate security of the personal data, including protection against unauthorised or unlawful processing." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Accountability", jp: "アカウンタビリティ（説明責任）", image: "管理者は「ルールを守っていること」を証明できなければならない原則。記録が超重要。", full: "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (principles)." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Lawful Basis", jp: "適法な根拠", image: "データ処理を合法に行うための6つのチケット（同意、契約、法的義務、重大な利益、公共の利益、正当な利益）。", full: "Processing shall be lawful only if and to the extent that at least one of the following applies... (Article 6)." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Consent", jp: "同意", image: "自由に、特定され、説明を受けた上で、明確なアクションによって示される意思表示。一番厳しいチケット。", full: "Any freely given, specific, informed and unambiguous indication of the data subject's wishes." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Performance of a Contract", jp: "契約の履行", image: "ユーザーとの契約（商品の発送など）を守るために絶対に必要なデータ処理の根拠。", full: "Processing is necessary for the performance of a contract to which the data subject is party." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Legal Obligation", jp: "法的義務の遵守", image: "法律（税法など）で「このデータを保存しろ」と決められている場合の根拠。", full: "Processing is necessary for compliance with a legal obligation to which the controller is subject." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Vital Interests", jp: "重大な利益", image: "人命に関わる緊急事態（意識不明の患者の血液型を調べるなど）の根拠。", full: "Processing is necessary in order to protect the vital interests of the data subject or of another natural person." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Public Interest", jp: "公共の利益", image: "警察や行政機関が、公共の任務を遂行するためにデータを処理する根拠。", full: "Processing is necessary for the performance of a task carried out in the public interest or in the exercise of official authority." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Legitimate Interests", jp: "正当な利益", image: "企業のビジネス上の利益。ただし、ユーザーの権利より重い場合に限る（DM送信や不正防止など）。非常に便利だが天秤にかける評価（LIA）が必要。", full: "Processing is necessary for the purposes of the legitimate interests pursued by the controller or by a third party." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Withdrawal of Consent", jp: "同意の撤回", image: "ユーザーはいつでも、同意した時と同じくらい「簡単に」同意を取り消せる。", full: "The data subject shall have the right to withdraw his or her consent at any time. It shall be as easy to withdraw as to give consent." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Child's Consent", jp: "子どもの同意", image: "オンラインサービス（ISS）において、子どもが自ら同意できる年齢は原則16歳。それ未満は親の同意が必要。", full: "Where the child is below the age of 16 years, such processing shall be lawful only if consent is given or authorised by the holder of parental responsibility." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Exemptions for Special Categories", jp: "特別カテゴリーの例外", image: "センシティブデータは原則処理禁止だが、「明示的な同意」や「公衆衛生の目的」など限られた例外で処理可能になる。", full: "Paragraph 1 shall not apply if one of the following applies: (a) explicit consent... (Article 9(2))." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Criminal Convictions", jp: "犯罪歴", image: "有罪判決や犯罪歴に関するデータは、公的機関の管理下でのみ処理可能。", full: "Processing of personal data relating to criminal convictions and offences shall be carried out only under the control of official authority." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Further Processing", jp: "目的外処理（その後の処理）", image: "最初の目的と「互換性がある（矛盾しない）」目的（例：統計、学術研究）なら、新たな同意なしで処理できる。", full: "Further processing for archiving purposes in the public interest, scientific or historical research purposes or statistical purposes shall not be considered to be incompatible with the initial purposes." },
-            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Demonstrate Consent", jp: "同意の証明", image: "管理者は、「ユーザーが確かに同意した」という記録を保持し、証明できなければならない。", full: "Where processing is based on consent, the controller shall be able to demonstrate that the data subject has consented to processing." },
+            // Level 2: Principles & Lawfulness (原則と適法性)
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Lawfulness, Fairness and Transparency", jp: "適法性、公正性、透明性", image: "GDPRの絶対原則。法的な根拠を持ち、ズルをせず、ユーザーに分かりやすく説明すること。", full: "Personal data shall be processed lawfully, fairly and in a transparent manner in relation to the data subject." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Purpose Limitation", jp: "目的の制限", image: "「最初に言った目的以外には使わない」という原則。", full: "Collected for specified, explicit and legitimate purposes and not further processed in a manner that is incompatible with those purposes." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Data Minimisation", jp: "データの最小化", image: "目的に必要なデータ「だけ」を集める。余計な情報は取らない原則。", full: "Adequate, relevant and limited to what is necessary in relation to the purposes for which they are processed." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Accuracy", jp: "正確性", image: "データは常に最新で正確に保つ。間違っていたらすぐ消すか直す原則。", full: "Accurate and, where necessary, kept up to date." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Storage Limitation", jp: "保存期間の制限", image: "目的を達成したら、いつまでも保存せずに捨てる原則。", full: "Kept in a form which permits identification of data subjects for no longer than is necessary for the purposes for which the personal data are processed." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Integrity and Confidentiality", jp: "完全性と機密性", image: "セキュリティの原則。ハッキングや紛失からデータを安全に守ること。", full: "Processed in a manner that ensures appropriate security of the personal data, including protection against unauthorised or unlawful processing." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Accountability", jp: "アカウンタビリティ（説明責任）", image: "管理者は「ルールを守っていること」を証明できなければならない原則。記録が超重要。", full: "The controller shall be responsible for, and be able to demonstrate compliance with, paragraph 1 (principles)." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Lawful Basis", jp: "適法な根拠", image: "データ処理を合法に行うための6つのチケット（同意、契約、法的義務、重大な利益、公共の利益、正当な利益）。", full: "Processing shall be lawful only if and to the extent that at least one of the following applies... (Article 6)." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Consent", jp: "同意", image: "自由に、特定され、説明を受けた上で、明確なアクションによって示される意思表示。一番厳しいチケット。", full: "Any freely given, specific, informed and unambiguous indication of the data subject's wishes." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Performance of a Contract", jp: "契約の履行", image: "ユーザーとの契約（商品の発送など）を守るために絶対に必要なデータ処理の根拠。", full: "Processing is necessary for the performance of a contract to which the data subject is party." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Legal Obligation", jp: "法的義務の遵守", image: "法律（税法など）で「このデータを保存しろ」と決められている場合の根拠。", full: "Processing is necessary for compliance with a legal obligation to which the controller is subject." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Vital Interests", jp: "重大な利益", image: "人命に関わる緊急事態（意識不明の患者の血液型を調べるなど）の根拠。", full: "Processing is necessary in order to protect the vital interests of the data subject or of another natural person." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Public Interest", jp: "公共の利益", image: "警察や行政機関が、公共の任務を遂行するためにデータを処理する根拠。", full: "Processing is necessary for the performance of a task carried out in the public interest or in the exercise of official authority." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Legitimate Interests", jp: "正当な利益", image: "企業のビジネス上の利益。ただし、ユーザーの権利より重い場合に限る（DM送信や不正防止など）。非常に便利だが天秤にかける評価（LIA）が必要。", full: "Processing is necessary for the purposes of the legitimate interests pursued by the controller or by a third party." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Withdrawal of Consent", jp: "同意の撤回", image: "ユーザーはいつでも、同意した時と同じくらい「簡単に」同意を取り消せる。", full: "The data subject shall have the right to withdraw his or her consent at any time. It shall be as easy to withdraw as to give consent." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Child's Consent", jp: "子どもの同意", image: "オンラインサービス（ISS）において、子どもが自ら同意できる年齢は原則16歳。それ未満は親の同意が必要。", full: "Where the child is below the age of 16 years, such processing shall be lawful only if consent is given or authorised by the holder of parental responsibility." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Exemptions for Special Categories", jp: "特別カテゴリーの例外", image: "センシティブデータは原則処理禁止だが、「明示的な同意」や「公衆衛生の目的」など限られた例外で処理可能になる。", full: "Paragraph 1 shall not apply if one of the following applies: (a) explicit consent... (Article 9(2))." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Criminal Convictions", jp: "犯罪歴", image: "有罪判決や犯罪歴に関するデータは、公的機関の管理下でのみ処理可能。", full: "Processing of personal data relating to criminal convictions and offences shall be carried out only under the control of official authority." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Further Processing", jp: "目的外処理（その後の処理）", image: "最初の目的と「互換性がある（矛盾しない）」目的（例：統計、学術研究）なら、新たな同意なしで処理できる。", full: "Further processing for archiving purposes in the public interest, scientific or historical research purposes or statistical purposes shall not be considered to be incompatible with the initial purposes." },
+            { level: "Level 2", theme: "2. Principles & Lawfulness", eng: "Demonstrate Consent", jp: "同意の証明", image: "管理者は、「ユーザーが確かに同意した」という記録を保持し、証明できなければならない。", full: "Where processing is based on consent, the controller shall be able to demonstrate that the data subject has consented to processing." },
 
-            // Level 3: Data Subject Rights (データ主体の権利)
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Transparent Information", jp: "透明性のある情報提供", image: "プライバシーポリシーは、簡潔で、透明性があり、理解しやすく、容易にアクセスできる形で提供すること。", full: "The controller shall take appropriate measures to provide any information in a concise, transparent, intelligible and easily accessible form, using clear and plain language." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Time Limit for Responding", jp: "権利行使への回答期限", image: "ユーザーから権利行使の要求があったら、「不当な遅滞なく、遅くとも1ヶ月以内」に対応する義務。", full: "The controller shall provide information on action taken on a request... without undue delay and in any event within one month of receipt of the request." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to be Informed", jp: "情報提供を受ける権利", image: "データ収集時に「誰が、何のために、誰に共有するか」をプライバシーノーティスで知らせる権利。", full: "Information to be provided where personal data are collected from the data subject (Article 13)." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right of Access", jp: "アクセス権", image: "「私のどんなデータ持ってるの？コピーちょうだい」と要求できる権利。", full: "The data subject shall have the right to obtain from the controller confirmation as to whether or not personal data concerning him or her are being processed, and access to the personal data." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Rectification", jp: "訂正権", image: "「データが間違ってるから直して！」と要求できる権利。", full: "The data subject shall have the right to obtain from the controller without undue delay the rectification of inaccurate personal data concerning him or her." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Erasure", jp: "消去権（忘れられる権利）", image: "「もう不要だから、私のデータを消して！」と要求できる権利。同意撤回時などに発動。", full: "The data subject shall have the right to obtain from the controller the erasure of personal data concerning him or her without undue delay (Right to be forgotten)." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Restriction of Processing", jp: "処理の制限権", image: "「データは消さなくていいけど、一旦使うのストップして！（正確性を争っている間など）」と要求できる権利。", full: "The data subject shall have the right to obtain from the controller restriction of processing where one of the following applies..." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Notification Obligation", jp: "受領者への通知義務", image: "データを訂正・消去・制限したら、管理者はそのデータを共有した第三者（受領者）にも「直して/消して」と伝える義務。", full: "The controller shall communicate any rectification or erasure of personal data or restriction of processing to each recipient." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Data Portability", jp: "データポータビリティ権", image: "「私のデータを機械で読める形式（CSV等）で返して！別の会社に乗り換えるから！」という権利。", full: "The right to receive the personal data concerning him or her... in a structured, commonly used and machine-readable format and have the right to transmit those data to another controller." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Object", jp: "異議を唱える権利", image: "「正当な利益」や「公共の利益」で処理されている場合、「私の状況を考慮してやめて！」と文句を言える権利。", full: "The data subject shall have the right to object, on grounds relating to his or her particular situation, at any time to processing of personal data." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Direct Marketing Objection", jp: "ダイレクトマーケティングへの異議", image: "ダイレクトメール等の目的で処理されることに対する異議。これは【絶対的な権利】であり、企業は拒否できず直ちにやめなければならない。", full: "Where personal data are processed for direct marketing purposes, the data subject shall have the right to object at any time... no longer processed for such purposes." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Automated Decision-Making", jp: "自動化された意思決定", image: "AIやアルゴリズムだけで、人間の関与なしにローン審査を落とされるような決定を拒否できる権利。", full: "The right not to be subject to a decision based solely on automated processing, including profiling, which produces legal effects concerning him or her." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Human Intervention", jp: "人間の関与", image: "自動化された決定に対して、「AIじゃなくて人間がチェックして！」と要求できる権利。", full: "The data subject shall have the right to obtain human intervention on the part of the controller, to express his or her point of view and to contest the decision." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Derogations to Rights", jp: "権利行使の例外", image: "「国家安全保障」や「犯罪捜査」などのために、加盟国の法律でデータ主体の権利を一時的に制限できること。", full: "Union or Member State law to which the data controller or processor is subject may restrict by way of a legislative measure the scope of the obligations and rights..." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Free of Charge", jp: "無償での対応", image: "権利行使の対応は原則「無料」で行わなければならない。ただし、要求が過剰な場合は手数料を取れる。", full: "Information provided under Articles 13 and 14 and any communication and any actions taken under Articles 15 to 22 and 34 shall be provided free of charge." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Identity Verification", jp: "本人確認", image: "権利行使してきた人が本当に本人か疑わしい場合、管理者は追加の情報を求めて確認できる。", full: "The controller may request the provision of additional information necessary to confirm the identity of the data subject." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Exemptions for Erasure", jp: "消去権の例外", image: "「表現の自由」や「法的義務の遵守（税務記録の保存など）」がある場合は、消去要求を拒否できる。", full: "Paragraph 1 (Right to erasure) shall not apply to the extent that processing is necessary: for exercising the right of freedom of expression and information; for compliance with a legal obligation..." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Conditions for Portability", jp: "ポータビリティ権の条件", image: "この権利が発動するのは、適法根拠が「同意」または「契約」であり、かつ「自動化された手段」で処理されている場合のみ。", full: "Where the processing is based on consent or on a contract, and the processing is carried out by automated means." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Meaningful Information about Logic", jp: "論理に関する意味のある情報", image: "自動化された意思決定を行う場合、AIがどういう理屈で判断しているか（ロジック）をユーザーに説明する義務。", full: "Provide meaningful information about the logic involved, as well as the significance and the envisaged consequences of such processing for the data subject." },
-            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Manifestly Unfounded or Excessive", jp: "明らかに根拠がない、または過剰な要求", image: "嫌がらせのように何度も同じアクセス権を行使してくる場合、対応を拒否したり手数料を取ったりできる。", full: "Where requests from a data subject are manifestly unfounded or excessive, in particular because of their repetitive character, the controller may either charge a reasonable fee or refuse to act." },
+            // Level 3: Data Subject Rights (データ主体の権利)
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Transparent Information", jp: "透明性のある情報提供", image: "プライバシーポリシーは、簡潔で、透明性があり、理解しやすく、容易にアクセスできる形で提供すること。", full: "The controller shall take appropriate measures to provide any information in a concise, transparent, intelligible and easily accessible form, using clear and plain language." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Time Limit for Responding", jp: "権利行使への回答期限", image: "ユーザーから権利行使の要求があったら、「不当な遅滞なく、遅くとも1ヶ月以内」に対応する義務。", full: "The controller shall provide information on action taken on a request... without undue delay and in any event within one month of receipt of the request." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to be Informed", jp: "情報提供を受ける権利", image: "データ収集時に「誰が、何のために、誰に共有するか」をプライバシーノーティスで知らせる権利。", full: "Information to be provided where personal data are collected from the data subject (Article 13)." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right of Access", jp: "アクセス権", image: "「私のどんなデータ持ってるの？コピーちょうだい」と要求できる権利。", full: "The data subject shall have the right to obtain from the controller confirmation as to whether or not personal data concerning him or her are being processed, and access to the personal data." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Rectification", jp: "訂正権", image: "「データが間違ってるから直して！」と要求できる権利。", full: "The data subject shall have the right to obtain from the controller without undue delay the rectification of inaccurate personal data concerning him or her." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Erasure", jp: "消去権（忘れられる権利）", image: "「もう不要だから、私のデータを消して！」と要求できる権利。同意撤回時などに発動。", full: "The data subject shall have the right to obtain from the controller the erasure of personal data concerning him or her without undue delay (Right to be forgotten)." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Restriction of Processing", jp: "処理の制限権", image: "「データは消さなくていいけど、一旦使うのストップして！（正確性を争っている間など）」と要求できる権利。", full: "The data subject shall have the right to obtain from the controller restriction of processing where one of the following applies..." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Notification Obligation", jp: "受領者への通知義務", image: "データを訂正・消去・制限したら、管理者はそのデータを共有した第三者（受領者）にも「直して/消して」と伝える義務。", full: "The controller shall communicate any rectification or erasure of personal data or restriction of processing to each recipient." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Data Portability", jp: "データポータビリティ権", image: "「私のデータを機械で読める形式（CSV等）で返して！別の会社に乗り換えるから！」という権利。", full: "The right to receive the personal data concerning him or her... in a structured, commonly used and machine-readable format and have the right to transmit those data to another controller." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Right to Object", jp: "異議を唱える権利", image: "「正当な利益」や「公共の利益」で処理されている場合、「私の状況を考慮してやめて！」と文句を言える権利。", full: "The data subject shall have the right to object, on grounds relating to his or her particular situation, at any time to processing of personal data." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Direct Marketing Objection", jp: "ダイレクトマーケティングへの異議", image: "ダイレクトメール等の目的で処理されることに対する異議。これは【絶対的な権利】であり、企業は拒否できず直ちにやめなければならない。", full: "Where personal data are processed for direct marketing purposes, the data subject shall have the right to object at any time... no longer processed for such purposes." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Automated Decision-Making", jp: "自動化された意思決定", image: "AIやアルゴリズムだけで、人間の関与なしにローン審査を落とされるような決定を拒否できる権利。", full: "The right not to be subject to a decision based solely on automated processing, including profiling, which produces legal effects concerning him or her." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Human Intervention", jp: "人間の関与", image: "自動化された決定に対して、「AIじゃなくて人間がチェックして！」と要求できる権利。", full: "The data subject shall have the right to obtain human intervention on the part of the controller, to express his or her point of view and to contest the decision." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Derogations to Rights", jp: "権利行使の例外", image: "「国家安全保障」や「犯罪捜査」などのために、加盟国の法律でデータ主体の権利を一時的に制限できること。", full: "Union or Member State law to which the data controller or processor is subject may restrict by way of a legislative measure the scope of the obligations and rights..." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Free of Charge", jp: "無償での対応", image: "権利行使の対応は原則「無料」で行わなければならない。ただし、要求が過剰な場合は手数料を取れる。", full: "Information provided under Articles 13 and 14 and any communication and any actions taken under Articles 15 to 22 and 34 shall be provided free of charge." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Identity Verification", jp: "本人確認", image: "権利行使してきた人が本当に本人か疑わしい場合、管理者は追加の情報を求めて確認できる。", full: "The controller may request the provision of additional information necessary to confirm the identity of the data subject." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Exemptions for Erasure", jp: "消去権の例外", image: "「表現の自由」や「法的義務の遵守（税務記録の保存など）」がある場合は、消去要求を拒否できる。", full: "Paragraph 1 (Right to erasure) shall not apply to the extent that processing is necessary: for exercising the right of freedom of expression and information; for compliance with a legal obligation..." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Conditions for Portability", jp: "ポータビリティ権の条件", image: "この権利が発発動するのは、適法根拠が「同意」または「契約」であり、かつ「自動化された手段」で処理されている場合のみ。", full: "Where the processing is based on consent or on a contract, and the processing is carried out by automated means." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Meaningful Information about Logic", jp: "論理に関する意味のある情報", image: "自動化された意思決定を行う場合、AIがどういう理屈で判断しているか（ロジック）をユーザーに説明する義務。", full: "Provide meaningful information about the logic involved, as well as the significance and the envisaged consequences of such processing for the data subject." },
+            { level: "Level 3", theme: "3. Data Subject Rights", eng: "Manifestly Unfounded or Excessive", jp: "明らかに根拠がない、または過剰な要求", image: "嫌がらせのように何度も同じアクセス権を行使してくる場合、対応を拒否したり手数料を取ったりできる。", full: "Where requests from a data subject are manifestly unfounded or excessive, in particular because of their repetitive character, the controller may either charge a reasonable fee or refuse to act." },
 
-            // Level 4: Controller/Processor Obligations (管理者と処理者の義務)
-            { level: "Level 4", theme: "4. Obligations", eng: "Data Protection by Design", jp: "プライバシー・バイ・デザイン", image: "システムやサービスを「設計する段階から」データ保護の仕組み（仮名化など）を組み込むこと。", full: "The controller shall, both at the time of the determination of the means for processing and at the time of the processing itself, implement appropriate technical and organisational measures." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Data Protection by Default", jp: "プライバシー・バイ・デフォルト", image: "初期設定（デフォルト）の状態で、必要な最小限のデータしか処理されないようにしておくこと（例：SNSの公開範囲を最初は非公開にする）。", full: "The controller shall implement appropriate technical and organisational measures for ensuring that, by default, only personal data which are necessary for each specific purpose of the processing are processed." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Joint Controllers", jp: "共同管理者", image: "2つ以上の組織が、データ処理の「目的と手段を共同で決定」する関係。責任分担を明確に定める必要がある。", full: "Where two or more controllers jointly determine the purposes and means of processing, they shall be joint controllers." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Processor Agreement", jp: "処理者契約 (DPA)", image: "管理者と処理者の間で結ぶ、データ保護に関する契約。処理者は管理者の指示にのみ従うことなどが明記される。", full: "Processing by a processor shall be governed by a contract or other legal act under Union or Member State law, that is binding on the processor with regard to the controller." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Sub-processor", jp: "復処理者（サブプロセッサ）", image: "処理者がさらに下請けに出す業者。管理者の「事前の書面による承認（特定または一般的な承認）」が必要。", full: "The processor shall not engage another processor without prior specific or general written authorisation of the controller." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Record of Processing Activities (RoPA)", jp: "処理活動の記録", image: "企業が「どんなデータを、誰の責任で、何のために、どこに送っているか」をまとめた台帳。従業員250人未満は原則免除（例外あり）。", full: "Each controller and, where applicable, the controller's representative, shall maintain a record of processing activities under its responsibility." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Cooperation with SA", jp: "監督機関への協力", image: "管理者や処理者は、監督機関（SA）から要請があれば、調査等に協力する義務がある。", full: "The controller and the processor and, where applicable, their representatives, shall cooperate, on request, with the supervisory authority in the performance of its tasks." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Security of Processing", jp: "処理の安全性", image: "リスクに応じた適切な技術的・組織的安全対策（暗号化、仮名化、バックアップなど）を講じる義務。", full: "The controller and the processor shall implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Data Breach Notification to SA", jp: "監督機関への侵害通知", image: "データ漏洩が起きたら、管理者は「不当な遅滞なく、遅くとも72時間以内」に監督機関に報告する義務（リスクがない場合を除く）。", full: "In the case of a personal data breach, the controller shall without undue delay and, where feasible, not later than 72 hours after having become aware of it, notify the personal data breach to the supervisory authority." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Processor's Notification", jp: "処理者の通知義務", image: "処理者（クラウドベンダー等）で漏洩が起きたら、監督機関ではなく「管理者」に不当な遅滞なく報告する義務。", full: "The processor shall notify the controller without undue delay after becoming aware of a personal data breach." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Communication to Data Subject", jp: "データ主体への通知", image: "漏洩によって個人の権利に「高いリスク」が生じる場合、ユーザー本人にも遅滞なく知らせる義務。", full: "When the personal data breach is likely to result in a high risk to the rights and freedoms of natural persons, the controller shall communicate the personal data breach to the data subject without undue delay." },
-            { level: "Level 4", theme: "4. Obligations", eng: "DPIA (Data Protection Impact Assessment)", jp: "データ保護影響評価", image: "新しい技術を使うなど「高いリスク」が予想される処理を始める前に、リスクと対策を文書化して評価するプロセス。", full: "Where a type of processing in particular using new technologies... is likely to result in a high risk... the controller shall, prior to the processing, carry out an assessment of the impact." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Prior Consultation", jp: "事前の相談", image: "DPIAをやった結果、「リスクが高すぎて対策できない！」となった場合、処理を始める前に監督機関に相談する義務。", full: "The controller shall consult the supervisory authority prior to processing where a data protection impact assessment indicates that the processing would result in a high risk in the absence of measures." },
-            { level: "Level 4", theme: "4. Obligations", eng: "DPO (Data Protection Officer)", jp: "データ保護責任者", image: "企業内のプライバシー警察。独立性を持ち、解雇されにくく、経営陣に直接報告する専門家。", full: "The controller and the processor shall designate a data protection officer in any case where: (a) public authority... (b) regular and systematic monitoring on a large scale... (c) processing on a large scale of special categories of data." },
-            { level: "Level 4", theme: "4. Obligations", eng: "DPO Independence", jp: "DPOの独立性", image: "DPOは職務遂行に関して指示を受けず、任務を果たしたことで罰せられたり解雇されたりしない。", full: "The controller and processor shall ensure that the data protection officer does not receive any instructions regarding the exercise of those tasks. He or she shall not be dismissed or penalised." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Tasks of the DPO", jp: "DPOの任務", image: "助言、コンプライアンスの監視、DPIAの助言、監督機関との窓口役など。「決定」はしない（決定するのは管理者）。", full: "To inform and advise the controller or the processor... to monitor compliance with this Regulation... to act as the contact point for the supervisory authority." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Codes of Conduct", jp: "行動規範", image: "業界団体などが作成する、その業界に特化したGDPR遵守のガイドライン。監督機関の承認が必要。", full: "The Member States, the supervisory authorities, the Board and the Commission shall encourage the drawing up of codes of conduct intended to contribute to the proper application of this Regulation." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Certification", jp: "認証", image: "「うちはGDPR守ってますよ」という第三者機関からの証明マークやシール。有効期間は最大3年。", full: "Data protection certification mechanisms and of data protection seals and marks, for the purpose of demonstrating compliance." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Return or Deletion", jp: "データの返還または消去", image: "処理者契約の終了時、処理者は管理者の選択に従い、データをすべて消去するか返還する義務。", full: "At the choice of the controller, deletes or returns all the personal data to the controller after the end of the provision of services relating to processing." },
-            { level: "Level 4", theme: "4. Obligations", eng: "Audits and Inspections", jp: "監査と検査", image: "処理者は、管理者（またはその委託先）による監査を受け入れ、コンプライアンスを証明する情報をすべて提供する義務。", full: "Makes available to the controller all information necessary to demonstrate compliance... and allow for and contribute to audits, including inspections, conducted by the controller." },
+            // Level 4: Controller/Processor Obligations (管理者と処理者の義務)
+            { level: "Level 4", theme: "4. Obligations", eng: "Data Protection by Design", jp: "プライバシー・バイ・デザイン", image: "システムやサービスを「設計する段階から」データ保護の仕組み（仮名化など）を組み込むこと。", full: "The controller shall, both at the time of the determination of the means for processing and at the time of the processing itself, implement appropriate technical and organisational measures." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Data Protection by Default", jp: "プライバシー・バイ・デフォルト", image: "初期設定（デフォルト）の状態で、必要な最小限のデータしか処理されないようにしておくこと（例：SNSの公開範囲を最初は非公開にする）。", full: "The controller shall implement appropriate technical and organisational measures for ensuring that, by default, only personal data which are necessary for each specific purpose of the processing are processed." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Joint Controllers", jp: "共同管理者", image: "2つ以上の組織が、データ処理の「目的と手段を共同で決定」する関係。責任分担を明確に定める必要がある。", full: "Where two or more controllers jointly determine the purposes and means of processing, they shall be joint controllers." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Processor Agreement", jp: "処理者契約 (DPA)", image: "管理者と処理者の間で結ぶ、データ保護に関する契約。処理者は管理者の指示にのみ従うことなどが明記される。", full: "Processing by a processor shall be governed by a contract or other legal act under Union or Member State law, that is binding on the processor with regard to the controller." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Sub-processor", jp: "復処理者（サブプロセッサ）", image: "処理者がさらに下請けに出す業者。管理者の「事前の書面による承認（特定または一般的な承認）」が必要。", full: "The processor shall not engage another processor without prior specific or general written authorisation of the controller." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Record of Processing Activities (RoPA)", jp: "処理活動の記録", image: "企業が「どんなデータを、誰の責任で、何のために、どこに送っているか」をまとめた台帳。従業員250人未満は原則免除（例外あり）。", full: "Each controller and, where applicable, the controller's representative, shall maintain a record of processing activities under its responsibility." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Cooperation with SA", jp: "監督機関への協力", image: "管理者や処理者は、監督機関（SA）から要請があれば、調査等に協力する義務がある。", full: "The controller and the processor and, where applicable, their representatives, shall cooperate, on request, with the supervisory authority in the performance of its tasks." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Security of Processing", jp: "処理の安全性", image: "リスクに応じた適切な技術的・組織的安全対策（暗号化、仮名化、バックアップなど）を講じる義務。", full: "The controller and the processor shall implement appropriate technical and organisational measures to ensure a level of security appropriate to the risk." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Data Breach Notification to SA", jp: "監督機関への侵害通知", image: "データ漏洩が起きたら、管理者は「不当な遅滞なく、遅くとも72時間以内」に監督機関に報告する義務（リスクがない場合を除く）。", full: "In the case of a personal data breach, the controller shall without undue delay and, where feasible, not later than 72 hours after having become aware of it, notify the personal data breach to the supervisory authority." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Processor's Notification", jp: "処理者の通知義務", image: "処理者（クラウドベンダー等）で漏洩が起きたら、監督機関ではなく「管理者」に不当な遅滞なく報告する義務。", full: "The processor shall notify the controller without undue delay after becoming aware of a personal data breach." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Communication to Data Subject", jp: "データ主体への通知", image: "漏洩によって個人の権利に「高いリスク」が生じる場合、ユーザー本人にも遅滞なく知らせる義務。", full: "When the personal data breach is likely to result in a high risk to the rights and freedoms of natural persons, the controller shall communicate the personal data breach to the data subject without undue delay." },
+            { level: "Level 4", theme: "4. Obligations", eng: "DPIA (Data Protection Impact Assessment)", jp: "データ保護影響評価", image: "新しい技術を使うなど「高いリスク」が予想される処理を始める前に、リスクと対策を文書化して評価するプロセス。", full: "Where a type of processing in particular using new technologies... is likely to result in a high risk... the controller shall, prior to the processing, carry out an assessment of the impact." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Prior Consultation", jp: "事前の相談", image: "DPIAをやった結果、「リスクが高すぎて対策できない！」となった場合、処理を始める前に監督機関に相談する義務。", full: "The controller shall consult the supervisory authority prior to processing where a data protection impact assessment indicates that the processing would result in a high risk in the absence of measures." },
+            { level: "Level 4", theme: "4. Obligations", eng: "DPO (Data Protection Officer)", jp: "データ保護責任者", image: "企業内のプライバシー警察。独立性を持ち、解雇されにくく、経営陣に直接報告する専門家。", full: "The controller and the processor shall designate a data protection officer in any case where: (a) public authority... (b) regular and systematic monitoring on a large scale... (c) processing on a large scale of special categories of data." },
+            { level: "Level 4", theme: "4. Obligations", eng: "DPO Independence", jp: "DPOの独立性", image: "DPOは職務遂行に関して指示を受けず、任務を果たしたことで罰せられたり解雇されたりしない。", full: "The controller and processor shall ensure that the data protection officer does not receive any instructions regarding the exercise of those tasks. He or she shall not be dismissed or penalised." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Tasks of the DPO", jp: "DPOの任務", image: "助言、コンプライアンスの監視、DPIAの助言、監督機関との窓口役など。「決定」はしない（決定するのは管理者）。", full: "To inform and advise the controller or the processor... to monitor compliance with this Regulation... to act as the contact point for the supervisory authority." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Codes of Conduct", jp: "行動規範", image: "業界団体などが作成する、その業界に特化したGDPR遵守のガイドライン。監督機関の承認が必要。", full: "The Member States, the supervisory authorities, the Board and the Commission shall encourage the drawing up of codes of conduct intended to contribute to the proper application of this Regulation." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Certification", jp: "認証", image: "「うちはGDPR守ってますよ」という第三者機関からの証明マークやシール。有効期間は最大3年。", full: "Data protection certification mechanisms and of data protection seals and marks, for the purpose of demonstrating compliance." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Return or Deletion", jp: "データの返還または消去", image: "処理者契約の終了時、処理者は管理者の選択に従い、データをすべて消去するか返還する義務。", full: "At the choice of the controller, deletes or returns all the personal data to the controller after the end of the provision of services relating to processing." },
+            { level: "Level 4", theme: "4. Obligations", eng: "Audits and Inspections", jp: "監査と検査", image: "処理者は、管理者（またはその委託先）による監査を受け入れ、コンプライアンスを証明する情報をすべて提供する義務。", full: "Makes available to the controller all information necessary to demonstrate compliance... and allow for and contribute to audits, including inspections, conducted by the controller." },
 
-            // Level 5: Transfer & Enforcement (越境移転と執行)
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Cross-border Data Transfer", jp: "データ越境移転", image: "EU域内から、EU外の第三国（日本、米国など）へデータを持ち出すこと。原則禁止で、特別な条件を満たす必要がある。", full: "Any transfer of personal data which are undergoing processing or are intended for processing after transfer to a third country or to an international organisation." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Adequacy Decision", jp: "十分性認定", image: "欧州委員会が「この国はEUと同レベルで安全だ！」とお墨付きを与えた国（日本など）。追加手続きなしで移転可能。", full: "A transfer of personal data to a third country or an international organisation may take place where the Commission has decided that the third country... ensures an adequate level of protection." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Appropriate Safeguards", jp: "適切な保護措置", image: "十分性認定がない国（米国など）にデータを送るための法的ツール。SCCやBCRなど。", full: "In the absence of a decision pursuant to Article 45(3), a controller or processor may transfer personal data to a third country... only if the controller or processor has provided appropriate safeguards." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Standard Contractual Clauses (SCC)", jp: "標準契約条項", image: "欧州委員会が用意した「これを契約書に入れれば安全とみなす」というテンプレート。一番よく使われる移転ツール。", full: "Standard data protection clauses adopted by the Commission in accordance with the examination procedure." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Binding Corporate Rules (BCR)", jp: "拘束的企業準則", image: "多国籍企業グループの内部だけで使える、監督機関が承認したグローバルな社内ルール。", full: "Personal data protection policies which are adhered to by a controller or processor established on the territory of a Member State for transfers... within a group of undertakings." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Derogations for Specific Situations", jp: "特定の状況における例外", image: "十分性認定もSCCもない場合の最終手段。「明示的な同意」や「契約の履行に必要」な場合の一時的な移転。", full: "In the absence of an adequacy decision... or of appropriate safeguards... a transfer or a set of transfers of personal data to a third country... shall take place only on one of the following conditions (Article 49)." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "EDPB (European Data Protection Board)", jp: "欧州データ保護会議", image: "各国の監督機関(SA)のトップが集まるEUレベルのボス組織。GDPRの解釈の統一（ガイドライン発行）を行う。", full: "The European Data Protection Board is hereby established as a body of the Union and shall have legal personality. It shall ensure the consistent application of this Regulation." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Consistency Mechanism", jp: "一貫性メカニズム", image: "EU全体でGDPRがバラバラに適用されないよう、各国の監督機関が協力し、EDPBが意見を出す仕組み。", full: "In order to contribute to the consistent application of this Regulation throughout the Union, the supervisory authorities shall cooperate with each other and, where relevant, with the Commission, through the consistency mechanism." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "One-Stop-Shop", jp: "ワンストップショップ", image: "越境処理を行う企業が、各国の監督機関に個別対応せず、「主導監督機関（Lead SA）」1箇所だけを窓口にできる仕組み。", full: "The lead supervisory authority shall be the sole interlocutor of the controller or processor for the cross-border processing carried out by that controller or processor." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Right to Lodge a Complaint", jp: "監督機関への不服申立権", image: "データ主体が、「企業にGDPR違反された！」と自分の国（または違反があった国）の監督機関にチクる権利。", full: "Every data subject shall have the right to lodge a complaint with a supervisory authority, in particular in the Member State of his or her habitual residence." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Right to an Effective Judicial Remedy", jp: "実効的な司法救済を受ける権利", image: "監督機関の決定に不満がある場合や、企業に直接損害賠償を求めたい場合に、裁判所に訴える権利。", full: "Each natural or legal person shall have the right to an effective judicial remedy against a legally binding decision of a supervisory authority concerning them." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Right to Compensation", jp: "損害賠償請求権", image: "GDPR違反によって物質的（金銭的）または非物質的（精神的）な損害を受けた人が、管理者や処理者に賠償を求める権利。", full: "Any person who has suffered material or non-material damage as a result of an infringement of this Regulation shall have the right to receive compensation." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Administrative Fines", jp: "制裁金", image: "GDPR違反企業に科される巨額の罰金。最大で「2,000万ユーロ」または「全世界年間売上高の4%」のいずれか高い方。", full: "Infringements of the following provisions shall... be subject to administrative fines up to 20 000 000 EUR, or in the case of an undertaking, up to 4 % of the total worldwide annual turnover." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Lower Tier Fines", jp: "下位の制裁金", image: "比較的軽い違反（DPO未選任や記録漏れなど）に対する罰金。最大で「1,000万ユーロ」または「売上高の2%」。", full: "Infringements of the following provisions shall... be subject to administrative fines up to 10 000 000 EUR, or in the case of an undertaking, up to 2 % of the total worldwide annual turnover." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Effective, Proportionate and Dissuasive", jp: "実効的、比例的、かつ抑止力のある", image: "制裁金の額を決める際の大原則。ただ高いだけでなく、違反の内容に見合い、かつ「もう二度とやらない」と思わせる額にする。", full: "Each supervisory authority shall ensure that the imposition of administrative fines... shall in each individual case be effective, proportionate and dissuasive." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Investigative Powers of SA", jp: "監督機関の調査権限", image: "SAが企業に立ち入ったり、情報を提出させたり、監査を行ったりする権限。", full: "Each supervisory authority shall have all of the following investigative powers: to order the controller and the processor to provide any information... to carry out data protection audits..." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Corrective Powers of SA", jp: "監督機関の是正権限", image: "SAが企業に「警告」したり、処理の「一時停止・禁止」を命じたり、制裁金を科したりする権限。", full: "Each supervisory authority shall have all of the following corrective powers: to issue warnings... to order the controller to comply with data subject's requests... to impose a temporary or definitive limitation including a ban on processing..." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Material Scope", jp: "物的適用範囲", image: "GDPRが何に適用されるか。「自動化された手段（PCなど）」または「ファイリングシステム（紙）」による処理に適用。", full: "This Regulation applies to the processing of personal data wholly or partly by automated means and to the processing other than by automated means which form part of a filing system." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Territorial Scope", jp: "地理的適用範囲", image: "EU内に拠点がある企業はもちろん、EU外の企業でも「EUの住人に商品を提供」したり「行動を監視」したりすれば適用される（域外適用）。", full: "Applies to the processing of personal data of data subjects who are in the Union by a controller or processor not established in the Union, where the processing activities are related to: offering of goods or services... or monitoring of their behaviour." },
-            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Household Exemption", jp: "家庭的活動の例外", image: "個人的・家庭的な目的（家族の連絡先をスマホに保存するなど）のデータ処理にはGDPRは適用されない。", full: "This Regulation does not apply to the processing of personal data by a natural person in the course of a purely personal or household activity." }
-        ];
+            // Level 5: Transfer & Enforcement (越境移転と執行)
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Cross-border Data Transfer", jp: "データ越境移転", image: "EU域内から、EU外の第三国（日本、米国など）へデータを持ち出すこと。原則禁止で、特別な条件を満たす必要がある。", full: "Any transfer of personal data which are undergoing processing or are intended for processing after transfer to a third country or to an international organisation." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Adequacy Decision", jp: "十分性認定", image: "欧州委員会が「この国はEUと同レベルで安全だ！」とお墨付きを与えた国（日本など）。追加手続きなしで移転可能。", full: "A transfer of personal data to a third country or an international organisation may take place where the Commission has decided that the third country... ensures an adequate level of protection." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Appropriate Safeguards", jp: "適切な保護措置", image: "十分性認定がない国（米国など）にデータを送るための法的ツール。SCCやBCRなど。", full: "In the absence of a decision pursuant to Article 45(3), a controller or processor may transfer personal data to a third country... only if the controller or processor has provided appropriate safeguards." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Standard Contractual Clauses (SCC)", jp: "標準契約条項", image: "欧州委員会が用意した「これを契約書に入れれば安全とみなす」というテンプレート。一番よく使われる移転ツール。", full: "Standard data protection clauses adopted by the Commission in accordance with the examination procedure." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Binding Corporate Rules (BCR)", jp: "拘束的企業準則", image: "多国籍企業グループの内部だけで使える、監督機関が承認したグローバルな社内ルール。", full: "Personal data protection policies which are adhered to by a controller or processor established on the territory of a Member State for transfers... within a group of undertakings." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Derogations for Specific Situations", jp: "特定の状況における例外", image: "十分性認定もSCCもない場合の最終手段。「明示的な同意」や「契約の履行に必要」な場合の一時的な移転。", full: "In the absence of an adequacy decision... or of appropriate safeguards... a transfer or a set of transfers of personal data to a third country... shall take place only on one of the following conditions (Article 49)." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "EDPB (European Data Protection Board)", jp: "欧州データ保護会議", image: "各国の監督機関(SA)のトップが集まるEUレベルのボス組織。GDPRの解釈の統一（ガイドライン発行）を行う。", full: "The European Data Protection Board is hereby established as a body of the Union and shall have legal personality. It shall ensure the consistent application of this Regulation." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Consistency Mechanism", jp: "一貫性メカニズム", image: "EU全体でGDPRがバラバラに適用されないよう、各国の監督機関が協力し、EDPBが意見を出す仕組み。", full: "In order to contribute to the consistent application of this Regulation throughout the Union, the supervisory authorities shall cooperate with each other and, where relevant, with the Commission, through the consistency mechanism." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "One-Stop-Shop", jp: "ワンストップショップ", image: "越境処理を行う企業が、各国の監督機関に個別対応せず、「主導監督機関（Lead SA）」1箇所だけを窓口にできる仕組み。", full: "The lead supervisory authority shall be the sole interlocutor of the controller or processor for the cross-border processing carried out by that controller or processor." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Right to Lodge a Complaint", jp: "監督機関への不服申立権", image: "データ主体が、「企業にGDPR違反された！」と自分の国（または違反があった国）の監督機関にチクる権利。", full: "Every data subject shall have the right to lodge a complaint with a supervisory authority, in particular in the Member State of his or her habitual residence." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Right to an Effective Judicial Remedy", jp: "実効的な司法救済を受ける権利", image: "監督機関の決定に不満がある場合や、企業に直接損害賠償を求めたい場合に、裁判所に訴える権利。", full: "Each natural or legal person shall have the right to an effective judicial remedy against a legally binding decision of a supervisory authority concerning them." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Right to Compensation", jp: "損害賠償請求権", image: "GDPR違反によって物質的（金銭的）または非物質的（精神的）な損害を受けた人が、管理者や処理者に賠償を求める権利。", full: "Any person who has suffered material or non-material damage as a result of an infringement of this Regulation shall have the right to receive compensation." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Administrative Fines", jp: "制裁金", image: "GDPR違反企業に科される巨額の罰金。最大で「2,000万ユーロ」または「全世界年間売上高の4%」のいずれか高い方。", full: "Infringements of the following provisions shall... be subject to administrative fines up to 20 000 000 EUR, or in the case of an undertaking, up to 4 % of the total worldwide annual turnover." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Lower Tier Fines", jp: "下位の制裁金", image: "比較的軽い違反（DPO未選任や記録漏れなど）に対する罰金。最大で「1,000万ユーロ」または「売上高の2%」。", full: "Infringements of the following provisions shall... be subject to administrative fines up to 10 000 000 EUR, or in the case of an undertaking, up to 2 % of the total worldwide annual turnover." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Effective, Proportionate and Dissuasive", jp: "実効的、比例的、かつ抑止力のある", image: "制裁金の額を決める際の大原則。ただ高いだけでなく、違反の内容に見合い、かつ「もう二度とやらない」と思わせる額にする。", full: "Each supervisory authority shall ensure that the imposition of administrative fines... shall in each individual case be effective, proportionate and dissuasive." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Investigative Powers of SA", jp: "監督機関の調査権限", image: "SAが企業に立ち入ったり、情報を提出させたり、監査を行ったりする権限。", full: "Each supervisory authority shall have all of the following investigative powers: to order the controller and the processor to provide any information... to carry out data protection audits..." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Corrective Powers of SA", jp: "監督機関の是正権限", image: "SAが企業に「警告」したり、処理の「一時停止・禁止」を命じたり、制裁金を科したりする権限。", full: "Each supervisory authority shall have all of the following corrective powers: to issue warnings... to order the controller to comply with data subject's requests... to impose a temporary or definitive limitation including a ban on processing..." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Material Scope", jp: "物的適用範囲", image: "GDPRが何に適用されるか。「自動化された手段（PCなど）」または「ファイリングシステム（紙）」による処理に適用。", full: "This Regulation applies to the processing of personal data wholly or partly by automated means and to the processing other than by automated means which form part of a filing system." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Territorial Scope", jp: "地理的適用範囲", image: "EU内に拠点がある企業はもちろん、EU外の企業でも「EUの住人に商品を提供」したり「行動を監視」したりすれば適用される（域外適用）。", full: "Applies to the processing of personal data of data subjects who are in the Union by a controller or processor not established in the Union, where the processing activities are related to: offering of goods or services... or monitoring of their behaviour." },
+            { level: "Level 5", theme: "5. Transfer & Enforcement", eng: "Household Exemption", jp: "家庭的活動の例外", image: "個人的・家庭的な目的（家族の連絡先をスマホに保存するなど）のデータ処理にはGDPRは適用されない。", full: "This Regulation does not apply to the processing of personal data by a natural person in the course of a purely personal or household activity." }
+        ];
 
-        let currentIndex = 0;
-        let isFlipped = false;
+        let currentIndex = 0;
+        let isFlipped = false;
 
-        // DOM Elements
-        const cardInner = document.getElementById('card-inner');
-        const flashcard = document.getElementById('flashcard');
-        const swipeContainer = document.getElementById('swipe-container');
-        
-        const englishChunk = document.getElementById('english-chunk');
-        const japaneseChunk = document.getElementById('japanese-chunk');
-        const mentalImage = document.getElementById('mental-image');
-        const fullSentenceContainer = document.getElementById('full-sentence-container');
-        const levelBadge = document.getElementById('level-badge');
-        const themeText = document.getElementById('theme-text');
-        
-        const progressText = document.getElementById('progress-text');
-        const progressBar = document.getElementById('progress-bar');
-        const dotContainer = document.getElementById('dot-container');
-        const completionOverlay = document.getElementById('completion-overlay');
-        const speakBtn = document.getElementById('speak-btn'); // 単語スピーカーボタン
+        // DOM Elements
+        const cardInner = document.getElementById('card-inner');
+        const flashcard = document.getElementById('flashcard');
+        const swipeContainer = document.getElementById('swipe-container');
+        
+        const englishChunk = document.getElementById('english-chunk');
+        const japaneseChunk = document.getElementById('japanese-chunk');
+        const mentalImage = document.getElementById('mental-image');
+        const fullSentenceContainer = document.getElementById('full-sentence-container');
+        const levelBadge = document.getElementById('level-badge');
+        const themeText = document.getElementById('theme-text');
+        
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        const dotContainer = document.getElementById('dot-container');
+        const completionOverlay = document.getElementById('completion-overlay');
+        const speakBtn = document.getElementById('speak-btn'); // 単語スピーカーボタン
 
-        // --- 音声読み上げ機能 ---
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                // すでに読み上げ中ならキャンセル
-                window.speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US'; // 英語(アメリカ)に設定
-                // utterance.rate = 0.9; // 少しゆっくりにしたい場合はコメントアウトを外す
-                
-                window.speechSynthesis.speak(utterance);
-            } else {
-                alert("お使いのブラウザは音声読み上げに対応していません。");
-            }
-        }
+        // --- 音声読み上げ機能 ---
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                // すでに読み上げ中ならキャンセル
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; // 英語(アメリカ)に設定
+                // utterance.rate = 0.9; // 少しゆっくりにしたい場合はコメントアウトを外す
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("お使いのブラウザは音声読み上げに対応していません。");
+            }
+        }
 
-        // 単語スピーカーボタンのクリックイベント
-        speakBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // これがないとカードが裏返ってしまう
-            const currentData = flashcardData[currentIndex];
-            speakText(currentData.eng);
-        });
+        // 単語スピーカーボタンのクリックイベント
+        speakBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // これがないとカードが裏返ってしまう
+            const currentData = flashcardData[currentIndex];
+            speakText(currentData.eng);
+        });
 
 
-        // Init dots
-        function initDots() {
-            dotContainer.innerHTML = '';
-            flashcardData.forEach((_, i) => {
-                const dot = document.createElement('div');
-                dot.className = `w-2 h-2 rounded-full bg-gray-300 dot ${i === 0 ? 'active' : ''} shrink-0 m-0.5`;
-                dot.id = `dot-${i}`;
-                dotContainer.appendChild(dot);
-            });
-        }
+        // Init dots
+        function initDots() {
+            dotContainer.innerHTML = '';
+            flashcardData.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = `w-2 h-2 rounded-full bg-gray-300 dot ${i === 0 ? 'active' : ''} shrink-0 m-0.5`;
+                dot.id = `dot-${i}`;
+                dotContainer.appendChild(dot);
+            });
+        }
 
-        // Highlight exact phrase in full sentence and add speaker button
-        function renderFullSentence(data) {
-            const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${escapeRegExp(data.eng)})`, 'i');
-            
-            const highlighted = data.full.replace(regex, '<span class="bg-blue-100 text-blue-800 font-bold px-1 rounded shadow-sm">$1</span>');
-            
-            // 例文エリアのHTMLを構築（ヘッダー部分にスピーカーアイコンを追加）
-            fullSentenceContainer.innerHTML = `
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-[10px] uppercase font-bold text-gray-400">Official Text / Context</span>
-                    <button id="speak-full-btn" class="text-gray-400 transition-all speaker-btn focus:outline-none" aria-label="例文全体を読み上げる">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="leading-relaxed">${highlighted}</div>
-            `;
+        // Highlight exact phrase in full sentence and add speaker button
+        function renderFullSentence(data) {
+            const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapeRegExp(data.eng)})`, 'i');
+            
+            const highlighted = data.full.replace(regex, '<span class="bg-blue-100 text-blue-800 font-bold px-1 rounded shadow-sm">$1</span>');
+            
+            // 例文エリアのHTMLを構築（ヘッダー部分にスピーカーアイコンを追加）
+            fullSentenceContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] uppercase font-bold text-gray-400">Official Text / Context</span>
+                    <button id="speak-full-btn" class="text-gray-400 transition-all speaker-btn focus:outline-none" aria-label="例文全体を読み上げる">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="leading-relaxed">${highlighted}</div>
+            `;
 
-            // 例文スピーカーボタンのクリックイベントを追加
-            document.getElementById('speak-full-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                speakText(data.full);
-            });
-        }
+            // 例文スピーカーボタンのクリックイベントを追加
+            document.getElementById('speak-full-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                speakText(data.full);
+            });
+        }
 
-        function updateUI() {
-            const data = flashcardData[currentIndex];
-            
-            if (isFlipped) {
-                cardInner.style.transition = 'none';
-                cardInner.classList.remove('is-flipped');
-                isFlipped = false;
-                void cardInner.offsetWidth; 
-                cardInner.style.transition = 'transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)';
-            }
+        function updateUI() {
+            const data = flashcardData[currentIndex];
+            
+            if (isFlipped) {
+                cardInner.style.transition = 'none';
+                cardInner.classList.remove('is-flipped');
+                isFlipped = false;
+                void cardInner.offsetWidth; 
+                cardInner.style.transition = 'transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)';
+            }
 
-            englishChunk.textContent = data.eng;
-            japaneseChunk.textContent = data.jp;
-            mentalImage.textContent = data.image;
-            levelBadge.textContent = data.level;
-            themeText.textContent = data.theme;
-            
-            renderFullSentence(data);
+            englishChunk.textContent = data.eng;
+            japaneseChunk.textContent = data.jp;
+            mentalImage.textContent = data.image;
+            levelBadge.textContent = data.level;
+            themeText.textContent = data.theme;
+            
+            renderFullSentence(data);
 
-            const currentNum = currentIndex + 1;
-            const totalNum = flashcardData.length;
-            progressText.textContent = `${currentNum}/${totalNum}`;
-            progressBar.style.width = `${(currentNum / totalNum) * 100}%`;
+            const currentNum = currentIndex + 1;
+            const totalNum = flashcardData.length;
+            progressText.textContent = `${currentNum}/${totalNum}`;
+            progressBar.style.width = `${(currentNum / totalNum) * 100}%`;
 
-            document.querySelectorAll('.dot').forEach((dot, i) => {
-                if (i === currentIndex) {
-                    dot.classList.add('active', 'bg-blue-500');
-                    dot.classList.remove('bg-gray-300', 'bg-blue-200');
-                    dot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                } else if (i < currentIndex) {
-                    dot.classList.remove('active', 'bg-gray-300', 'bg-blue-500');
-                    dot.classList.add('bg-blue-200');
-                } else {
-                    dot.classList.remove('active', 'bg-blue-200', 'bg-blue-500');
-                    dot.classList.add('bg-gray-300');
-                }
-            });
-        }
+            document.querySelectorAll('.dot').forEach((dot, i) => {
+                if (i === currentIndex) {
+                    dot.classList.add('active', 'bg-blue-500');
+                    dot.classList.remove('bg-gray-300', 'bg-blue-200');
+                    dot.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else if (i < currentIndex) {
+                    dot.classList.remove('active', 'bg-gray-300', 'bg-blue-500');
+                    dot.classList.add('bg-blue-200');
+                } else {
+                    dot.classList.remove('active', 'bg-blue-200', 'bg-blue-500');
+                    dot.classList.add('bg-gray-300');
+                }
+            });
+        }
 
-        // カードを裏返す処理
-        cardInner.addEventListener('click', () => {
-            isFlipped = !isFlipped;
-            if (isFlipped) {
-                cardInner.classList.add('is-flipped');
-            } else {
-                cardInner.classList.remove('is-flipped');
-            }
-        });
+        // カードを裏返す処理
+        cardInner.addEventListener('click', () => {
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                cardInner.classList.add('is-flipped');
+            } else {
+                cardInner.classList.remove('is-flipped');
+            }
+        });
 
-        function animateCardChange(direction) {
-            const translateVal = direction === 'next' ? '-100vw' : '100vw';
-            
-            flashcard.classList.add('swipe-transition');
-            flashcard.style.transform = `translateX(${translateVal}) rotate(${direction === 'next' ? '-10deg' : '10deg'})`;
-            flashcard.style.opacity = '0';
+        function animateCardChange(direction) {
+            const translateVal = direction === 'next' ? '-100vw' : '100vw';
+            
+            flashcard.classList.add('swipe-transition');
+            flashcard.style.transform = `translateX(${translateVal}) rotate(${direction === 'next' ? '-10deg' : '10deg'})`;
+            flashcard.style.opacity = '0';
 
-            // カードが切り替わる時に音声を止める
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
+            // カードが切り替わる時に音声を止める
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
 
-            setTimeout(() => {
-                if (direction === 'next') currentIndex++;
-                else currentIndex--;
-                
-                updateUI();
+            setTimeout(() => {
+                if (direction === 'next') currentIndex++;
+                else currentIndex--;
+                
+                updateUI();
 
-                flashcard.classList.remove('swipe-transition');
-                flashcard.style.transform = `translateX(${direction === 'next' ? '100vw' : '-100vw'}) rotate(${direction === 'next' ? '10deg' : '-10deg'})`;
-                
-                setTimeout(() => {
-                    flashcard.classList.add('swipe-transition');
-                    flashcard.style.transform = 'translateX(0) rotate(0)';
-                    flashcard.style.opacity = '1';
-                    
-                    setTimeout(() => {
-                        flashcard.classList.remove('swipe-transition');
-                    }, 300);
-                }, 50);
+                flashcard.classList.remove('swipe-transition');
+                flashcard.style.transform = `translateX(${direction === 'next' ? '100vw' : '-100vw'}) rotate(${direction === 'next' ? '10deg' : '-10deg'})`;
+                
+                setTimeout(() => {
+                    flashcard.classList.add('swipe-transition');
+                    flashcard.style.transform = 'translateX(0) rotate(0)';
+                    flashcard.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        flashcard.classList.remove('swipe-transition');
+                    }, 300);
+                }, 50);
 
-            }, 300);
-        }
+            }, 300);
+        }
 
-        function showCompletion() {
-            completionOverlay.classList.remove('hidden');
-            setTimeout(() => {
-                completionOverlay.classList.remove('opacity-0');
-            }, 50);
-        }
+        function showCompletion() {
+            completionOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                completionOverlay.classList.remove('opacity-0');
+            }, 50);
+        }
 
-        function resetApp() {
-            completionOverlay.classList.add('opacity-0');
-            setTimeout(() => {
-                completionOverlay.classList.add('hidden');
-                currentIndex = 0;
-                initDots();
-                updateUI();
-            }, 500);
-        }
+        function resetApp() {
+            completionOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                completionOverlay.classList.add('hidden');
+                currentIndex = 0;
+                initDots();
+                updateUI();
+            }, 500);
+        }
 
-        // Swipe Detection
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let touchStartY = 0;
-        let touchEndY = 0;
-        const SWIPE_THRESHOLD = 50; 
+        // Swipe Detection
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+        const SWIPE_THRESHOLD = 50; 
 
-        swipeContainer.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
+        swipeContainer.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
 
-        swipeContainer.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            handleSwipe();
-        }, { passive: true });
+        swipeContainer.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }, { passive: true });
 
-        function handleSwipe() {
-            const diffX = touchEndX - touchStartX;
-            const diffY = touchEndY - touchStartY;
+        function handleSwipe() {
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
 
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD) {
-                if (diffX < 0) {
-                    if (currentIndex < flashcardData.length - 1) {
-                        animateCardChange('next');
-                    } else {
-                        showCompletion();
-                    }
-                } else {
-                    if (currentIndex > 0) {
-                        animateCardChange('prev');
-                    }
-                }
-            }
-        }
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD) {
+                if (diffX < 0) {
+                    if (currentIndex < flashcardData.length - 1) {
+                        animateCardChange('next');
+                    } else {
+                        showCompletion();
+                    }
+                } else {
+                    if (currentIndex > 0) {
+                        animateCardChange('prev');
+                    }
+                }
+            }
+        }
 
-        // Keyboard Support
-        document.addEventListener('keydown', (e) => {
-            // 右矢印 または スペースキー で次へ
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                if (currentIndex < flashcardData.length - 1) animateCardChange('next');
-                else if (currentIndex === flashcardData.length - 1) showCompletion();
-            } 
-            // 左矢印 で前へ
-            else if (e.key === 'ArrowLeft') {
-                if (currentIndex > 0) animateCardChange('prev');
-            } 
-            // 上下矢印 でカードを裏返す
-            else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                isFlipped = !isFlipped;
-                cardInner.classList.toggle('is-flipped', isFlipped);
-            }
-            // 's' キー で単語の音声を再生
-            else if (e.key === 's' || e.key === 'S') {
-                speakText(flashcardData[currentIndex].eng);
-            }
-            // 'f' キー で例文全体を再生
-            else if (e.key === 'f' || e.key === 'F') {
-                speakText(flashcardData[currentIndex].full);
-            }
-        });
+        // Keyboard Support
+        document.addEventListener('keydown', (e) => {
+            // 右矢印 または スペースキー で次へ
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                if (currentIndex < flashcardData.length - 1) animateCardChange('next');
+                else if (currentIndex === flashcardData.length - 1) showCompletion();
+            } 
+            // 左矢印 で前へ
+            else if (e.key === 'ArrowLeft') {
+                if (currentIndex > 0) animateCardChange('prev');
+            } 
+            // 上下矢印 でカードを裏返す
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                isFlipped = !isFlipped;
+                cardInner.classList.toggle('is-flipped', isFlipped);
+            }
+            // 's' キー で単語の音声を再生
+            else if (e.key === 's' || e.key === 'S') {
+                speakText(flashcardData[currentIndex].eng);
+            }
+            // 'f' キー で例文全体を再生
+            else if (e.key === 'f' || e.key === 'F') {
+                speakText(flashcardData[currentIndex].full);
+            }
+        });
 
-        initDots();
-        updateUI();
+        initDots();
+        updateUI();
 
-        // ---------------------------------------------
-        // Service Workerの登録 (PWA用 - ここから追加)
-        // ---------------------------------------------
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker 登録成功:', reg.scope))
-                    .catch(err => console.log('Service Worker 登録失敗:', err));
-            });
-        }
-        // ---------------------------------------------
-        // (ここまで追加)
-        // ---------------------------------------------
-    </script>
+        // ---------------------------------------------
+        // Service Workerの登録 (PWA用)
+        // ---------------------------------------------
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker 登録成功:', reg.scope))
+                    .catch(err => console.log('Service Worker 登録失敗:', err));
+            });
+        }
+    </script>
 </body>
 </html>
