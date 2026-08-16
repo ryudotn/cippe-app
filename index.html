@@ -66,7 +66,15 @@
 
     <!-- トップヘッダー -->
     <header class="bg-white px-4 py-3 shadow-sm z-10 flex justify-between items-center shrink-0">
-        <h1 class="text-lg font-bold text-gray-800 tracking-tight">CIPP/E Flashcards</h1>
+        <div class="flex items-center gap-2">
+            <!-- ハンバーガーメニューボタン -->
+            <button id="menu-btn" class="p-1.5 text-gray-500 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none" aria-label="目次を開く">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <h1 class="text-lg font-bold text-gray-800 tracking-tight">CIPP/E Flashcards</h1>
+        </div>
         <div class="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full shadow-inner" id="level-badge">Level 0</div>
     </header>
 
@@ -77,8 +85,8 @@
 
     <!-- テーマと現在地 -->
     <div class="px-4 pt-4 pb-2 flex justify-between items-end shrink-0">
-        <h2 class="text-sm font-bold text-gray-500 tracking-wider" id="theme-text">Category</h2>
-        <span class="text-sm font-bold text-gray-400" id="progress-text">1/140</span>
+        <h2 class="text-sm font-bold text-gray-500 tracking-wider truncate mr-2" id="theme-text">Category</h2>
+        <span class="text-sm font-bold text-gray-400 shrink-0" id="progress-text">1/140</span>
     </div>
 
     <!-- メインのカードエリア -->
@@ -149,8 +157,30 @@
         </button>
     </div>
 
+    <!-- 目次（ジャンプ）モーダル -->
+    <div id="toc-modal" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full sm:w-96 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden transform translate-y-full sm:scale-95 transition-all duration-300 flex flex-col max-h-[85vh]" id="toc-content">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                <h3 class="text-lg font-extrabold text-gray-800 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                    セクションジャンプ
+                </h3>
+                <button id="close-toc-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto grow">
+                <ul class="space-y-2" id="toc-list">
+                    <!-- JSで動的にリストを生成 -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // CIPP/E 厳選140語データ (Level 0に10語追加)
+        // CIPP/E 厳選140語データ
         const flashcardData = [
             // Level 0: Legal English Basics (法律英語の基礎・接続表現) 1-40
             { level: "Level 0", theme: "0. Legal English Basics", eng: "shall", jp: "〜しなければならない (絶対的義務)", image: "法律文書の王様。「Must」より堅く、法的拘束力がある絶対的な義務を表す。", full: "The controller shall implement appropriate measures." },
@@ -183,7 +213,6 @@
             { level: "Level 0", theme: "0. Legal English Basics", eng: "ensure", jp: "〜を確実にする / 保証する", image: "「安全な状態をキープしろ！」という管理者の義務を示す表現。", full: "Ensure a level of security appropriate to the risk." },
             { level: "Level 0", theme: "0. Legal English Basics", eng: "in the context of", jp: "〜の枠組みにおいて / 〜の状況下で", image: "EU拠点の活動の「一環として」処理が行われているか、という適用範囲で出る表現。", full: "Processing in the context of the activities of an establishment of a controller in the Union." },
             { level: "Level 0", theme: "0. Legal English Basics", eng: "notwithstanding", jp: "〜にもかかわらず", image: "「第〇条でこう言ってるけど、それに関係なくこっちのルールを優先するよ」という例外規定。", full: "Notwithstanding Article 5, the processing shall be lawful..." },
-            // ここから新規追加 10語
             { level: "Level 0", theme: "0. Legal English Basics", eng: "in a transparent manner", jp: "透明性のある方法で", image: "隠し事をせず、ユーザーに分かりやすく開示しているクリーンな状態。", full: "Personal data shall be processed lawfully, fairly and in a transparent manner." },
             { level: "Level 0", theme: "0. Legal English Basics", eng: "on the basis of", jp: "〜に基づいて / 〜を根拠として", image: "処理のチケット（適法根拠や同意など）を「土台」にして行動しているイメージ。", full: "Processing is lawful only if it is on the basis of the data subject's consent or some other legitimate basis." },
             { level: "Level 0", theme: "0. Legal English Basics", eng: "in the event of", jp: "〜の場合には / 万が一〜が起きたら", image: "「もしもデータ漏えい事件が起こってしまったら」という特定のイベント発生時を指す。", full: "In the event of a personal data breach, the controller shall notify the supervisory authority." },
@@ -195,7 +224,6 @@
             { level: "Level 0", theme: "0. Legal English Basics", eng: "implement", jp: "（対策などを）実施する / 導入する", image: "セキュリティ対策やシステムを「実際に実行に移す、組み込む」こと。", full: "The controller shall implement appropriate technical and organisational measures." },
             { level: "Level 0", theme: "0. Legal English Basics", eng: "infringement", jp: "侵害 / 違反", image: "GDPRのルールを破ること。高額な罰金（制裁金）の対象になる悪いアクション。", full: "Any person who has suffered damage as a result of an infringement of this Regulation shall have the right to receive compensation." },
 
-            // ---------------- 以下、既存の厳選100語 ----------------
             // Level 1: Core Definitions (基本定義)
             { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Personal Data", jp: "個人データ", image: "「特定の個人」を識別できるあらゆる情報（名前、IPアドレス、Cookieなど）", full: "Any information relating to an identified or identifiable natural person." },
             { level: "Level 1", theme: "1. Core Definitions (基本定義)", eng: "Data Subject", jp: "データ主体", image: "データの持ち主である「生きている自然人」。法人（会社）は含まれない。", full: "An identified or identifiable natural person to whom personal data relates." },
@@ -326,29 +354,97 @@
         const progressBar = document.getElementById('progress-bar');
         const dotContainer = document.getElementById('dot-container');
         const completionOverlay = document.getElementById('completion-overlay');
-        const speakBtn = document.getElementById('speak-btn'); // 単語スピーカーボタン
+        const speakBtn = document.getElementById('speak-btn');
+
+        // 目次（ジャンプ）用DOM
+        const menuBtn = document.getElementById('menu-btn');
+        const tocModal = document.getElementById('toc-modal');
+        const closeTocBtn = document.getElementById('close-toc-btn');
+        const tocContent = document.getElementById('toc-content');
+        const tocList = document.getElementById('toc-list');
+
+        // --- 目次リストの自動生成 ---
+        const levelData = [];
+        const levelTracker = new Set();
+
+        flashcardData.forEach((data, index) => {
+            if (!levelTracker.has(data.level)) {
+                levelTracker.add(data.level);
+                levelData.push({ level: data.level, theme: data.theme, index: index });
+            }
+        });
+
+        levelData.forEach(item => {
+            const li = document.createElement('li');
+            li.className = "flex justify-between items-center p-4 rounded-xl hover:bg-blue-50 active:bg-blue-100 cursor-pointer transition-colors border border-gray-100 hover:border-blue-200 shadow-sm";
+            li.innerHTML = `
+                <div>
+                    <span class="block text-sm font-extrabold text-blue-600 mb-1">${item.level}</span>
+                    <span class="block text-xs font-medium text-gray-600">${item.theme}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            `;
+            li.addEventListener('click', () => {
+                jumpTo(item.index);
+                closeToc();
+            });
+            tocList.appendChild(li);
+        });
+
+        // モーダルの開閉処理
+        function openToc() {
+            tocModal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                tocModal.classList.remove('opacity-0');
+                tocContent.classList.remove('translate-y-full', 'sm:scale-95');
+                tocContent.classList.add('sm:scale-100');
+            });
+        }
+
+        function closeToc() {
+            tocModal.classList.add('opacity-0');
+            tocContent.classList.add('translate-y-full', 'sm:scale-95');
+            tocContent.classList.remove('sm:scale-100');
+            setTimeout(() => {
+                tocModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // 指定インデックスへのジャンプ
+        function jumpTo(index) {
+            currentIndex = index;
+            if (isFlipped) {
+                isFlipped = false;
+                cardInner.classList.remove('is-flipped');
+            }
+            updateUI();
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        menuBtn.addEventListener('click', openToc);
+        closeTocBtn.addEventListener('click', closeToc);
+        tocModal.addEventListener('click', (e) => {
+            if (e.target === tocModal) closeToc();
+        });
+        // ------------------------------
 
         // --- 音声読み上げ機能 ---
         function speakText(text) {
             if ('speechSynthesis' in window) {
-                // すでに読み上げ中ならキャンセル
                 window.speechSynthesis.cancel();
-                
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US'; // 英語(アメリカ)に設定
-                // utterance.rate = 0.9; // 少しゆっくりにしたい場合はコメントアウトを外す
-                
+                utterance.lang = 'en-US'; 
                 window.speechSynthesis.speak(utterance);
             } else {
                 alert("お使いのブラウザは音声読み上げに対応していません。");
             }
         }
 
-        // 単語スピーカーボタンのクリックイベント
         speakBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // これがないとカードが裏返ってしまう
-            const currentData = flashcardData[currentIndex];
-            speakText(currentData.eng);
+            e.stopPropagation();
+            speakText(flashcardData[currentIndex].eng);
         });
 
         // Init dots
@@ -369,7 +465,6 @@
             
             const highlighted = data.full.replace(regex, '<span class="bg-blue-100 text-blue-800 font-bold px-1 rounded shadow-sm">$1</span>');
             
-            // 例文エリアのHTMLを構築（ヘッダー部分にスピーカーアイコンを追加）
             fullSentenceContainer.innerHTML = `
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-[10px] uppercase font-bold text-gray-400">Official Text / Context</span>
@@ -382,7 +477,6 @@
                 <div class="leading-relaxed">${highlighted}</div>
             `;
 
-            // 例文スピーカーボタンのクリックイベントを追加
             document.getElementById('speak-full-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 speakText(data.full);
@@ -445,7 +539,6 @@
             flashcard.style.transform = `translateX(${translateVal}) rotate(${direction === 'next' ? '-10deg' : '10deg'})`;
             flashcard.style.opacity = '0';
 
-            // カードが切り替わる時に音声を止める
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
             }
@@ -528,25 +621,20 @@
 
         // Keyboard Support
         document.addEventListener('keydown', (e) => {
-            // 右矢印 または スペースキー で次へ
             if (e.key === 'ArrowRight' || e.key === ' ') {
                 if (currentIndex < flashcardData.length - 1) animateCardChange('next');
                 else if (currentIndex === flashcardData.length - 1) showCompletion();
             } 
-            // 左矢印 で前へ
             else if (e.key === 'ArrowLeft') {
                 if (currentIndex > 0) animateCardChange('prev');
             } 
-            // 上下矢印 でカードを裏返す
             else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 isFlipped = !isFlipped;
                 cardInner.classList.toggle('is-flipped', isFlipped);
             }
-            // 's' キー で単語の音声を再生
             else if (e.key === 's' || e.key === 'S') {
                 speakText(flashcardData[currentIndex].eng);
             }
-            // 'f' キー で例文全体を再生
             else if (e.key === 'f' || e.key === 'F') {
                 speakText(flashcardData[currentIndex].full);
             }
@@ -568,3 +656,5 @@
     </script>
 </body>
 </html>
+
+
