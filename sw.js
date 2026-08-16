@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cippe-flashcards-v1';
+const CACHE_NAME = 'cippe-flashcards-v2';
 const urlsToCache = [
   './',
   './index.html',
